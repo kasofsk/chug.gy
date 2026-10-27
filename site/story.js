@@ -27,6 +27,9 @@
 
   // The machines under the graph: a member's own, the project's pool, and
   // the cloud. A pool also runs the project's lead and its threads.
+  var byN = {};
+  TICKETS.forEach(function (t) { byN[t.n] = t; });
+
   var MACHINES = [
     { id: "mbp", name: "geoff-mbp", kind: "A member's laptop", x: 60, slots: 1 },
     { id: "kay", name: "kay-thinkpad", kind: "A member's laptop", x: 200, slots: 1 },
@@ -49,7 +52,7 @@
   // above. The scene's end state is all of them together.
   var SCENES = [
     { id: "hero", set: {} },
-    { id: "why", set: { zoom: true, caption: "The same cluster, in the whole of the project's graph. Every ticket in it says what it waits on." } },
+    { id: "why", set: { zoom: true, caption: null } },
     {
       id: "graph",
       set: { zoom: false, t: { 418: { s: "draft" } }, caption: "#418 is drafted in a thread. It waits on #415 and #416, so it is placed by them." },
@@ -110,44 +113,7 @@
     ["Landed", "Tue 11:41", "a3f91c on main"]
   ];
 
-  // ------------------------------------------------------------- states --
-
-  function merge(state, patch) {
-    var out = {};
-    Object.keys(state).forEach(function (k) { out[k] = state[k]; });
-    Object.keys(patch || {}).forEach(function (k) {
-      if (k === "t") {
-        var t = {};
-        Object.keys(state.t || {}).forEach(function (n) { t[n] = state.t[n]; });
-        Object.keys(patch.t).forEach(function (n) {
-          var cur = t[n] || {}, next = {};
-          Object.keys(cur).forEach(function (f) { next[f] = cur[f]; });
-          Object.keys(patch.t[n]).forEach(function (f) { next[f] = patch.t[n][f]; });
-          t[n] = next;
-        });
-        out.t = t;
-      } else {
-        out[k] = patch[k];
-      }
-    });
-    return out;
-  }
-
-  // The state each scene ends in, folded from the base.
-  var ENDS = [];
-  SCENES.reduce(function (prev, scene) {
-    var end = merge(prev, scene.set);
-    (scene.steps || []).forEach(function (step) { end = merge(end, step.set); });
-    ENDS.push(end);
-    return end;
-  }, BASE);
-
-  function startOf(i) { return i === 0 ? merge(BASE, SCENES[0].set) : merge(ENDS[i - 1], SCENES[i].set); }
-
   // ----------------------------------------------------------- drawing --
-
-  var byN = {};
-  TICKETS.forEach(function (t) { byN[t.n] = t; });
 
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/"/g, "&quot;"); }
 
@@ -156,40 +122,121 @@
     return "M" + (a.x + 9) + "," + a.y + " C" + mx + "," + a.y + " " + mx + "," + b.y + " " + (b.x - 9) + "," + b.y;
   }
 
-  // The rest of the project, around the cluster, for the pulled-back view.
-  function field() {
-    var seed = 7;
+  // The rest of the project, around the cluster, for the pulled-back view:
+  // clusters of tickets, each with its own goal and its own frontier, with
+  // a few edges crossing between them and into ours.
+  var GOALS = [
+    "macOS runner under launchd", "Windows runner", "The lead's inbox", "The decision log",
+    "Trace replay", "Build caches", "Docker in a job", "Threads: drafts from chat", "Rulesets on GitHub",
+    "Approval by a person", "Credential scrubbing", "The invite flow", "Sizing a stage", "llms.txt and the docs",
+    "Personal runners", "Shared pools", "Bedrock and Vertex", "Codex login", "Landing as a pull request",
+    "Parked tickets", "The Runners page", "Job logs", "The project's image", "Workspace administration",
+    "Retired bindings", "Evaluator tasks", "chug.gy, the site", "The fabric", "The formal model",
+    "The ticket's brief", "Refusals", "Cost per attempt"
+  ];
+  var HERO_SCALE = 0.34, HERO_ORIGIN = { x: 500, y: 205 };
+  function heroPoint(t) { return { x: HERO_ORIGIN.x + (t.x - HERO_ORIGIN.x) * HERO_SCALE, y: HERO_ORIGIN.y + (t.y - HERO_ORIGIN.y) * HERO_SCALE }; }
+
+  var FIELD = (function () {
+    var seed = 11;
     function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
-    var cols = [], out = "";
-    for (var i = 0; i < 12; i++) {
-      var col = [];
-      for (var j = 0; j < 6; j++) {
-        var x = 36 + i * 84 + (rnd() - 0.5) * 24, y = 40 + j * 92 + (rnd() - 0.5) * 44;
-        var hole = x > 300 && x < 700 && y > 120 && y < 290;
-        col.push({ x: x, y: y, j: j, done: rnd() < 0.7, hole: hole });
-      }
-      cols.push(col);
-    }
-    for (i = 0; i < cols.length - 1; i++) {
-      cols[i].forEach(function (a) {
-        if (a.hole) return;
-        var near = cols[i + 1].filter(function (b) { return !b.hole && Math.abs(b.j - a.j) <= 1; });
-        if (!near.length) return;
-        var k = 1 + (rnd() < 0.35 ? 1 : 0);
-        for (var m = 0; m < k; m++) {
-          var b = near[Math.floor(rnd() * near.length)];
-          out += '<path class="fedge' + (a.done && b.done ? " fedge-done" : "") + '" d="' + edgePath({ x: a.x, y: a.y }, { x: b.x, y: b.y }) + '"/>';
+    function pick(list) { return list[Math.floor(rnd() * list.length)]; }
+    var COLS = 6, ROWS = 5, CW = 1000 / COLS, CH = 540 / ROWS;
+    var nodes = [], edges = [], clusters = [], cells = {};
+    var goal = 0;
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        if ((c === 2 || c === 3) && (r === 1 || r === 2)) continue; // where our cluster sits
+        var x0 = c * CW + 16, y0 = r * CH + 10, k = 3 + Math.floor(rnd() * 3), gap = (CW - 36) / (k - 1);
+        var cluster = { name: GOALS[goal++ % GOALS.length], cols: [], x: x0, y: y0 + CH - 16, cell: [c, r] };
+        var progress = rnd() < 0.15 ? 1 : rnd() < 0.1 ? 0 : 0.2 + rnd() * 0.75;
+        for (var i = 0; i < k; i++) {
+          var n = 1 + Math.floor(rnd() * 3), col = [];
+          for (var j = 0; j < n; j++) {
+            var node = { x: x0 + i * gap, y: y0 + 14 + (CH - 52) / 2 + (j - (n - 1) / 2) * 24, waits: [], cluster: cluster };
+            var frontier = Math.floor(progress * k);
+            node.s = i < frontier ? "landed" : i === frontier && progress < 1 ? (rnd() < 0.55 ? "working" : "waiting") : "waiting";
+            if (progress >= 1) node.s = "landed";
+            if (i > 0) {
+              var prev = cluster.cols[i - 1], m = 1 + (rnd() < 0.4 ? 1 : 0);
+              for (var q = 0; q < m; q++) { var w = pick(prev); if (node.waits.indexOf(w) < 0) node.waits.push(w); }
+            }
+            col.push(node); nodes.push(node);
+          }
+          cluster.cols.push(col);
         }
-      });
+        clusters.push(cluster); cells[c + "," + r] = cluster;
+      }
     }
-    cols.forEach(function (col) {
-      col.forEach(function (p) {
-        if (p.hole) return;
-        out += '<circle class="fnode' + (p.done ? " fnode-done" : "") + '" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="3"/>';
-      });
+    nodes.forEach(function (node) { node.waits.forEach(function (w) { edges.push({ from: w, to: node }); }); });
+    // Between clusters: a few edges from one goal's end to the next one's start, and into ours.
+    var heroRoots = [402, 403, 405].map(function (n) { return heroPoint(byN[n]); });
+    var heroEnd = heroPoint(byN[421]);
+    clusters.forEach(function (a) {
+      if (rnd() > 0.5) return;
+      var from = pick(a.cols[a.cols.length - 1]), c = a.cell[0] + 1, r = a.cell[1];
+      if (c >= COLS) return;
+      var b = cells[c + "," + r];
+      if (!b) { var root = pick(heroRoots); edges.push({ from: from, to: { x: root.x, y: root.y, s: "waiting", hero: true }, cross: true }); return; }
+      edges.push({ from: from, to: pick(b.cols[0]), cross: true });
     });
+    var after = cells["4,2"] || cells["4,1"];
+    if (after) edges.push({ from: { x: heroEnd.x, y: heroEnd.y, s: "waiting", hero: true }, to: pick(after.cols[0]), cross: true });
+    return { nodes: nodes, edges: edges, clusters: clusters };
+  })();
+
+  function fieldMarkup() {
+    var out = "";
+    FIELD.edges.forEach(function (e, i) {
+      e.i = i;
+      out += '<path class="fedge' + (e.cross ? " fedge-cross" : "") + (e.from.s === "landed" ? " fedge-done" : "") + '" data-fe="' + i + '" d="' + edgePath({ x: e.from.x - 7, y: e.from.y }, { x: e.to.x + 7, y: e.to.y }) + '"/>';
+    });
+    FIELD.nodes.forEach(function (n, i) {
+      n.i = i;
+      out += '<circle class="fnode fnode-' + n.s + '" data-fn="' + i + '" cx="' + n.x.toFixed(1) + '" cy="' + n.y.toFixed(1) + '" r="3"/>';
+    });
+    FIELD.clusters.forEach(function (c) {
+      out += '<text class="fgoal" x="' + c.x + '" y="' + c.y + '">' + esc(c.name) + "</text>";
+    });
+    var hp = heroPoint({ x: 60, y: 340 });
+    out += '<text class="fgoal fgoal-ours" x="' + hp.x.toFixed(1) + '" y="' + (hp.y + 30).toFixed(1) + '">Linux runner on rootless Podman</text>';
     return '<g class="field">' + out + "</g>";
   }
+  function field() { return fieldMarkup(); }
+
+  // While the reader looks at the whole, the fleet keeps working: a working
+  // ticket lands, and a ticket whose waits have all landed starts.
+  var fieldTimer = null;
+  function fieldTick() {
+    var working = FIELD.nodes.filter(function (n) { return n.s === "working"; });
+    var landing = working.slice().sort(function () { return Math.random() - 0.5; }).slice(0, 1 + Math.floor(Math.random() * 2));
+    landing.forEach(function (n) { n.s = "landed"; paintField(n); });
+    var ready = FIELD.nodes.filter(function (n) {
+      return n.s === "waiting" && n.waits.every(function (w) { return w.s === "landed"; });
+    }).sort(function () { return Math.random() - 0.5; }).slice(0, 1 + Math.floor(Math.random() * 2));
+    ready.forEach(function (n) { n.s = "working"; paintField(n); });
+  }
+  function paintField(n) {
+    var el = svg.querySelector('[data-fn="' + n.i + '"]');
+    if (el) el.setAttribute("class", "fnode fnode-" + n.s);
+    FIELD.edges.forEach(function (e) {
+      if (e.from !== n) return;
+      var p = svg.querySelector('[data-fe="' + e.i + '"]');
+      if (p) p.setAttribute("class", "fedge" + (e.cross ? " fedge-cross" : "") + (n.s === "landed" ? " fedge-done" : ""));
+    });
+  }
+  function fieldLife(on) {
+    if (fieldTimer) { window.clearInterval(fieldTimer); fieldTimer = null; }
+    if (on && !reduced) fieldTimer = window.setInterval(fieldTick, 900);
+  }
+
+  // The pulled-back scene is captioned by what the drawing counts.
+  (function () {
+    var working = FIELD.nodes.filter(function (n) { return n.s === "working"; }).length + 2;
+    SCENES[1].set.caption = "The same cluster in the whole of the project: " + (FIELD.clusters.length + 1) + " goals, " +
+      (FIELD.nodes.length + TICKETS.length) + " tickets, " + working + " of them in progress. One graph, and every ticket in it says what it waits on.";
+  })();
+
 
   // A slot's label: one line, or two when it names a stage as well.
   function slotText(text, label) {
@@ -263,6 +310,40 @@
       plane() + record() + "</svg>";
   }
 
+  // ------------------------------------------------------------- states --
+
+  function merge(state, patch) {
+    var out = {};
+    Object.keys(state).forEach(function (k) { out[k] = state[k]; });
+    Object.keys(patch || {}).forEach(function (k) {
+      if (k === "t") {
+        var t = {};
+        Object.keys(state.t || {}).forEach(function (n) { t[n] = state.t[n]; });
+        Object.keys(patch.t).forEach(function (n) {
+          var cur = t[n] || {}, next = {};
+          Object.keys(cur).forEach(function (f) { next[f] = cur[f]; });
+          Object.keys(patch.t[n]).forEach(function (f) { next[f] = patch.t[n][f]; });
+          t[n] = next;
+        });
+        out.t = t;
+      } else {
+        out[k] = patch[k];
+      }
+    });
+    return out;
+  }
+
+  // The state each scene ends in, folded from the base.
+  var ENDS = [];
+  SCENES.reduce(function (prev, scene) {
+    var end = merge(prev, scene.set);
+    (scene.steps || []).forEach(function (step) { end = merge(end, step.set); });
+    ENDS.push(end);
+    return end;
+  }, BASE);
+
+  function startOf(i) { return i === 0 ? merge(BASE, SCENES[0].set) : merge(ENDS[i - 1], SCENES[i].set); }
+
   // ------------------------------------------------------------ render --
 
   var figure = document.querySelector(".graph");
@@ -321,6 +402,7 @@
       if (!el.classList.contains("slot-fixed")) slotText(el.querySelector("text"), label || "");
     });
     svg.classList.toggle("zoomed", !!state.zoom);
+    fieldLife(!!state.zoom);
     figure.classList.toggle("compact", !state.zoom && !state.plane);
     svg.classList.toggle("plane-on", !!state.plane);
     svg.classList.toggle("note-on", !!state.note);

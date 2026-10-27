@@ -42,6 +42,8 @@
   --rule-strong: #c9c6d6;
   --signal: #d8322f;
   --signal-soft: rgba(216, 50, 47, 0.14);
+  --go: #1b9655;
+  --go-soft: rgba(27, 150, 85, 0.16);
   --node-done: #14112b;
   --node-wait: #c9c6d6;
   --edge: #d6d3e0;
@@ -67,6 +69,8 @@
     --rule-strong: #3d3860;
     --signal: #f0564f;
     --signal-soft: rgba(240, 86, 79, 0.18);
+    --go: #3fd584;
+    --go-soft: rgba(63, 213, 132, 0.2);
     --node-done: #f3f2f7;
     --node-wait: #3d3860;
     --edge: #2b2746;
@@ -202,7 +206,7 @@ a:hover { text-decoration-color: currentColor; }
 .key { display: inline-flex; align-items: center; gap: 8px; }
 .key::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--node-wait); }
 .key-landed::before { background: var(--node-done); border-color: var(--node-done); }
-.key-working::before { border-color: var(--signal); background: var(--signal-soft); }
+.key-working::before { border-color: var(--go); background: var(--go-soft); }
 .key-held::before { border: 1.5px dashed var(--signal); }
 
 /* Edges and nodes. The state is the class; the transition is the motion. */
@@ -213,10 +217,10 @@ a:hover { text-decoration-color: currentColor; }
 .graph .node circle { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1.5; transition: fill 0.5s ease, stroke 0.5s ease, stroke-width 0.5s ease; }
 .graph .node text { font-family: var(--sans); font-size: 14.5px; fill: var(--text-2); text-anchor: middle; transition: fill 0.5s ease; }
 .graph .node .num { font-family: var(--mono); font-size: 12px; fill: var(--text-3); letter-spacing: 0.02em; }
-.graph .node .stage { font-size: 12.5px; fill: var(--signal); }
+.graph .node .stage { font-size: 12.5px; fill: var(--go); }
 .graph .node-landed circle { fill: var(--node-done); stroke: var(--node-done); }
 .graph .node-landed .title { fill: var(--text); }
-.graph .node-working circle, .graph .node-checking circle { stroke: var(--signal); stroke-width: 2; fill: var(--signal-soft); }
+.graph .node-working circle, .graph .node-checking circle { stroke: var(--go); stroke-width: 2; fill: var(--go-soft); }
 .graph .node-working .title, .graph .node-checking .title { fill: var(--text); }
 .graph .node-checking circle { stroke-dasharray: 2.5 2.5; }
 .graph .node-held circle { stroke: var(--signal); stroke-dasharray: 2.5 2.5; stroke-width: 1.75; }
@@ -227,13 +231,21 @@ a:hover { text-decoration-color: currentColor; }
 .graph .node:focus-visible circle { stroke: var(--signal); }
 
 /* Pulling back: the cluster shrinks into the rest of the project. */
-.graph .zoomed .cluster { transform: scale(0.42); }
-.graph .field { opacity: 0; transition: opacity 0.9s ease; pointer-events: none; }
+.graph .zoomed .cluster { transform: scale(0.34); }
+.graph .field { opacity: 0; transition: opacity 1.1s ease 0.25s; pointer-events: none; }
 .graph .zoomed .field { opacity: 1; }
-.graph .fedge { fill: none; stroke: var(--edge); stroke-width: 0.8; }
+.graph .fedge { fill: none; stroke: var(--edge); stroke-width: 0.9; transition: stroke 0.6s ease; }
 .graph .fedge-done { stroke: var(--rule-strong); }
-.graph .fnode { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1; }
-.graph .fnode-done { fill: var(--rule-strong); stroke: var(--rule-strong); }
+.graph .fedge-cross { stroke-dasharray: 2 2; }
+.graph .fnode { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1; transition: fill 0.6s ease, stroke 0.6s ease; }
+.graph .fnode-landed { fill: var(--rule-strong); stroke: var(--rule-strong); }
+.graph .fnode-working { fill: var(--go-soft); stroke: var(--go); stroke-width: 1.25; }
+.graph .fgoal { font-family: var(--sans); font-size: 9.5px; fill: var(--text-3); }
+.graph .fgoal-ours { fill: var(--text); font-size: 10.5px; font-weight: 500; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .graph .fnode-landed { fill: var(--text-3); stroke: var(--text-3); }
+  :root:not([data-theme="light"]) .graph .fedge-done { stroke: var(--text-3); }
+}
 .graph .zoomed .node text { opacity: 0; }
 .graph .node text { transition: opacity 0.4s ease, fill 0.5s ease; }
 
@@ -255,9 +267,9 @@ a:hover { text-decoration-color: currentColor; }
 .graph .slot-dotted rect { stroke-dasharray: 2.5 2.5; }
 .graph .slot text { font-family: var(--mono); font-size: 10.5px; fill: var(--text-3); text-anchor: middle; }
 .graph .slot-fixed rect { fill: var(--bg-band); }
-.graph .slot-on rect { fill: var(--signal-soft); stroke: var(--signal); stroke-dasharray: none; }
+.graph .slot-on rect { fill: var(--go-soft); stroke: var(--go); stroke-dasharray: none; }
 .graph .slot-on text { fill: var(--text); }
-.graph .job { fill: none; stroke: var(--signal); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; transition: opacity 0.6s ease; }
+.graph .job { fill: none; stroke: var(--go); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; transition: opacity 0.6s ease; }
 .graph .job-on { opacity: 0.8; }
 
 /* One ticket's record, over the dimmed graph. */
@@ -428,7 +440,7 @@ section p { color: var(--text-2); max-width: var(--measure); }
   .graph .edge { stroke-width: 2; }
   .graph .record text { font-size: 17px; }
   .graph .record-title { font-size: 24px; }
-  .graph .note { display: none; }
+  .graph .note, .graph .fgoal { display: none; }
 }
 @media (max-width: 760px) {
   .access, .field-row { grid-template-columns: minmax(0, 1fr); }
