@@ -6,8 +6,5 @@ run:
 test:
     gofmt -l . && go vet ./... && go test ./...
 
-sprite:
-    python3 tools/sprite.py site/locomotive.svg
-
 image:
     docker build -t chug.gy .

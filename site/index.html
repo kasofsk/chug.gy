@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>chuggy</title>
-<meta name="description" content="chuggy runs a team's AI coding agents as one fleet. Every ticket in one graph, work spread across your machines, a lead that keeps the whole project coherent, and a person approving what lands.">
+<meta name="description" content="chuggy is the coordination layer for organizations that build software with AI agents. All of the work in one graph, people and agents working it together, every decision on the record, and a person approving what ships.">
 <meta property="og:title" content="chuggy">
-<meta property="og:description" content="Run your AI coding agents as one fleet.">
+<meta property="og:description" content="Engineering, run as a fleet.">
 <meta property="og:url" content="https://chug.gy/">
 <meta property="og:type" content="website">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,14 +16,14 @@
 <body>
 
 <header class="top">
-  <a class="brand" href="/"><span class="brand-engine" aria-hidden="true"></span>chuggy</a>
+  <a class="brand" href="/">chuggy</a>
   <nav class="top-nav" aria-label="Site">
-    <a href="#graph">How it works</a>
-    <a href="#fleet">The fleet</a>
-    <a href="#developers">For developers</a>
+    <a href="#why">Why</a>
+    <a href="#how">How it works</a>
+    <a href="#company">Company</a>
     <a href="/docs">Docs</a>
     <a href="/sign-in">Sign in</a>
-    <a class="button button-small" href="#request">Request an invite</a>
+    <a class="button button-small" href="#access">Request access</a>
   </nav>
 </header>
 
@@ -31,193 +31,122 @@
 
 <section class="hero">
   <div class="hero-text">
-    <h1>Run your AI coding agents as one fleet.</h1>
-    <p class="lead">Twenty developers with twenty agents cannot see each other's work, and the agents never talk. chuggy holds every ticket in one graph, runs the work across the machines you give it, and keeps the whole project coherent while each developer tends their own.</p>
-    <p class="actions">
-      <a class="button" href="#request">Request an invite</a>
-      <a class="button button-ghost" href="/docs">Read the docs</a>
-    </p>
+    <h1>Engineering, run as a fleet.</h1>
+    <div class="hero-aside">
+      <p class="lead">chuggy is the coordination layer for organizations that build software with AI agents. All of the work in one graph. People and agents working it with the same tools. Every decision on the record, and a person approving what ships.</p>
+      <p class="actions">
+        <a class="button" href="#access">Request access</a>
+        <a class="link-arrowless" href="/docs">Read the docs</a>
+      </p>
+    </div>
   </div>
+  <figure class="graph">
+    <svg class="graph-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="graph-title graph-desc">
+<title id="graph-title">A project's work graph</title>
+<desc id="graph-desc">Thirteen tickets arranged left to right by what they wait on. Six have landed, three are being worked, one is held by the lead, and the rest wait on the ones before them.</desc>
+<g class="graph-edges">
+<path class="edge edge-done" d="M49,80 C155.0,80 155.0,50 261,50"/>
+<path class="edge edge-done" d="M49,80 C155.0,80 155.0,140 261,140"/>
+<path class="edge edge-done" d="M49,190 C155.0,190 155.0,140 261,140"/>
+<path class="edge edge-done" d="M49,190 C155.0,190 155.0,230 261,230"/>
+<path class="edge edge-done" d="M49,300 C155.0,300 155.0,338 261,338"/>
+<path class="edge edge-done" d="M279,50 C385.0,50 385.0,95 491,95"/>
+<path class="edge" d="M279,140 C385.0,140 385.0,95 491,95"/>
+<path class="edge edge-done" d="M279,230 C385.0,230 385.0,200 491,200"/>
+<path class="edge edge-done" d="M49,300 C270.0,300 270.0,300 491,300"/>
+<path class="edge" d="M509,95 C615.0,95 615.0,150 721,150"/>
+<path class="edge" d="M509,200 C615.0,200 615.0,150 721,150"/>
+<path class="edge" d="M509,200 C615.0,200 615.0,270 721,270"/>
+<path class="edge" d="M509,300 C615.0,300 615.0,270 721,270"/>
+<path class="edge" d="M739,150 C845.0,150 845.0,210 951,210"/>
+<path class="edge" d="M739,270 C845.0,270 845.0,210 951,210"/>
+</g><g class="graph-nodes">
+<g class="node node-landed" transform="translate(40,80)"><circle r="8"/><text x="0" y="26">Accounts</text></g>
+<g class="node node-landed" transform="translate(40,190)"><circle r="8"/><text x="0" y="26">Catalog</text></g>
+<g class="node node-landed" transform="translate(40,300)"><circle r="8"/><text x="0" y="26">Rate limits</text></g>
+<g class="node node-landed" transform="translate(270,50)"><circle r="8"/><text x="0" y="26">Deposits</text></g>
+<g class="node node-working" transform="translate(270,140)"><circle r="8"/><text x="0" y="26">Refunds</text></g>
+<g class="node node-landed" transform="translate(270,230)"><circle r="8"/><text x="0" y="26">Receipts</text></g>
+<g class="node node-waiting" transform="translate(270,338)"><circle r="8"/><text x="0" y="26">Audit export</text></g>
+<g class="node node-held" transform="translate(500,95)"><circle r="8"/><text x="0" y="26">Check-in charge</text></g>
+<g class="node node-working" transform="translate(500,200)"><circle r="8"/><text x="0" y="26">Invoices</text></g>
+<g class="node node-working" transform="translate(500,300)"><circle r="8"/><text x="0" y="26">Admin roles</text></g>
+<g class="node node-waiting" transform="translate(730,150)"><circle r="8"/><text x="0" y="26">Reconciliation</text></g>
+<g class="node node-waiting" transform="translate(730,270)"><circle r="8"/><text x="0" y="26">Reports</text></g>
+<g class="node node-waiting" transform="translate(960,210)"><circle r="8"/><text x="0" y="26">Release 1.4</text></g>
+</g></svg>
+    <figcaption>
+      <span class="key key-landed">Landed</span>
+      <span class="key key-working">In progress</span>
+      <span class="key key-held">Held by the lead</span>
+      <span class="key key-waiting">Waiting</span>
+    </figcaption>
+  </figure>
+</section>
 
-  <aside class="board" aria-label="A project's work, the way chuggy sees it">
-    <p class="board-head"><span>bookings</span><span>5 tickets, 3 people, 4 machines</span></p>
-    <ol class="board-rows">
-      <li>
-        <span class="board-id">112</span>
-        <span class="board-title">Customer accounts</span>
-        <span class="board-state is-landed">Landed</span>
-        <span class="board-who">Claude, pool</span>
-      </li>
-      <li>
-        <span class="board-id">113</span>
-        <span class="board-title">Take a deposit when a booking is made <small>waits on 112</small></span>
-        <span class="board-state is-work">Working</span>
-        <span class="board-who">Claude, Maya's machine</span>
-      </li>
-      <li>
-        <span class="board-id">114</span>
-        <span class="board-title">Refund a cancelled booking <small>waits on 112</small></span>
-        <span class="board-state is-checks">Checking</span>
-        <span class="board-who">Codex, pool</span>
-      </li>
-      <li>
-        <span class="board-id">115</span>
-        <span class="board-title">Charge the card at check-in <small>waits on 113</small></span>
-        <span class="board-state is-held">Held</span>
-        <span class="board-who">by the lead</span>
-      </li>
-      <li>
-        <span class="board-id">116</span>
-        <span class="board-title">Nightly reconciliation</span>
-        <span class="board-state is-draft">Draft</span>
-        <span class="board-who">Sam, in chat</span>
-      </li>
-    </ol>
-    <p class="board-note"><b>Lead</b> 115 and 113 both change how a payment is recorded. Holding 115 until 113 lands, then it needs re-authoring against the new record.</p>
-  </aside>
-
-  <div class="rail" aria-hidden="true">
-    <span class="engine"></span>
+<section class="why" id="why" aria-labelledby="why-h">
+  <h2 id="why-h" class="visually-hidden">Why chuggy</h2>
+  <p class="thesis">The constraint on software has moved. Writing it is cheap now. Deciding what to write, keeping a hundred efforts coherent, and standing behind the result is not.</p>
+  <div class="why-body">
+    <p>One engineer with an agent is already a small team. An organization of them is a fleet, and a fleet without coordination is not faster, only louder. Agents that cannot see each other's work pull in different directions. Tasks wait on tasks nobody wrote down. Something ships, and nobody can say exactly why.</p>
+    <p>Each earlier shift in how software is made produced a layer the organization could no longer do without. Version control. Continuous integration. The shift to agents needs one too. chuggy is that layer: the structured graph of all the work, the rules for how work moves through it, and the record of what happened.</p>
   </div>
 </section>
 
-<section class="problem" aria-labelledby="problem-h">
-  <div class="problem-text">
-    <h2 id="problem-h">A chat window runs out at about a dozen tasks.</h2>
-    <p>Today's coding agents are good. Give one a list and it will work through it. The trouble starts when a team does this, because every developer has their own list, their own agent and their own context, and nothing connects them. Two agents change the same thing in different directions. Work waits on work nobody wrote down. Someone asks what the agents did last week, and the answer is in forty transcripts on twenty laptops.</p>
-    <p>This gets worse with every person you add. The fix is a single workflow the whole organization's work moves through, with a view of all of it, while each developer keeps tending their own tickets.</p>
-  </div>
-</section>
-
-<section class="graph" id="graph" aria-labelledby="graph-h">
-  <h2 id="graph-h">One graph of all the work.</h2>
-  <div class="graph-grid">
-    <div>
-      <h3>The graph</h3>
-      <p>Every piece of work is a ticket, and tickets say what they wait on. A ticket does not start until what it depends on has landed, so a big ask splits into parts that run in parallel where they can and in order where they must. You can see the whole project at once, or just your own corner of it.</p>
+<section class="how" id="how" aria-labelledby="how-h">
+  <h2 id="how-h">How it works</h2>
+  <div class="pillars">
+    <div class="pillar">
+      <h3>One graph of the work</h3>
+      <p>Every task is a ticket that says what it waits on. The organization sees the whole; each engineer tends their part. Nothing starts before what it depends on has landed, and nothing is lost in between.</p>
     </div>
-    <div>
-      <h3>The lead</h3>
-      <p>A project can have a lead, an agent that watches the whole graph rather than one ticket. It proposes what should run next, holds a ticket that would contradict work already in flight and writes down why, and answers questions from anyone on the team. Every decision it makes goes in a log you can read.</p>
+    <div class="pillar">
+      <h3>A lead on every project</h3>
+      <p>An agent that holds the whole picture rather than one task. It proposes what runs next, holds work that would conflict with work in flight, answers the team's questions, and writes down the reason for every decision.</p>
     </div>
-    <div>
-      <h3>The people</h3>
-      <p>Developers file tickets in chat or by hand and keep their own work moving. Reviewers approve what lands. Viewers watch. Each action is signed in and permission-checked, across workspaces and projects, so an organization can run many teams on one chuggy.</p>
+    <div class="pillar">
+      <h3>Verification before trust</h3>
+      <p>A worker's word is not evidence. The checks you write run, an independent reviewer judges the change, and a person approves where you require it. Every attempt keeps its transcript, its cost and its verdict.</p>
+    </div>
+    <div class="pillar">
+      <h3>Your fleet, your keys</h3>
+      <p>Work runs on machines you control, from a laptop to a shared pool to the cloud, under your own model accounts. Code and credentials never leave your hands. A project grows by adding machines.</p>
     </div>
   </div>
 </section>
 
-<section class="how" aria-labelledby="how-h">
-  <h2 id="how-h">Every ticket moves the same way.</h2>
+<section class="path" aria-labelledby="path-h">
+  <h2 id="path-h">The path every change takes</h2>
   <ol class="stations">
-    <li><b>Draft</b><span>Written in chat or by hand</span></li>
-    <li><b>Released</b><span>Ready for a machine to pick up</span></li>
+    <li><b>Draft</b><span>Written in chat, or by hand</span></li>
+    <li><b>Released</b><span>Ready for a machine to take</span></li>
     <li><b>Work</b><span>An agent or a script does it</span></li>
-    <li><b>Checks</b><span>Your commands, then a reviewing agent</span></li>
+    <li><b>Checks</b><span>Your tests, then an independent review</span></li>
     <li><b>Approval</b><span>A person says yes, where you require it</span></li>
     <li><b>Landed</b><span>A commit or a pull request in your repository</span></li>
   </ol>
-  <p class="how-note">A failed check sends the work back with the reason. Work that keeps failing parks and waits for a person. The agent that did the work does not judge it; a separate reviewing agent and the checks you wrote do. Each attempt keeps who asked, what model ran with what settings, the full transcript, every result, the cost, and the commit it became.</p>
+  <p class="path-note">The same path for a one-line fix and a month of work, for a ticket a person wrote and one an agent did.</p>
 </section>
 
-<section class="fleet" id="fleet" aria-labelledby="fleet-h">
-  <div class="fleet-intro">
-    <h2 id="fleet-h">Work runs across your machines.</h2>
-    <p>chuggy hosts the coordination. The work itself runs on runners you register, and a project can spread its tickets over as many of them as you have, on Linux, Macs and Windows. Your code and your AI credentials stay on hardware you control, and each machine uses its own Claude or Codex account.</p>
-  </div>
-  <dl class="fleet-facts">
-    <dt>Project pools</dt><dd>Machines a team shares. Any ticket in the project can run on any of them, and chat and the lead can run there too.</dd>
-    <dt>Personal runners</dt><dd>A developer's own machine, running only that developer's tickets in the projects they allow.</dd>
-    <dt>Kinds of work</dt><dd>A ticket names the environment it needs. Most run in a container of the project's image. Some run on the machine itself, for Unity, Xcode and tools like them.</dd>
-    <dt>Credentials</dt><dd>A Claude subscription or API key, Bedrock, Vertex AI or Foundry, or a Codex login, read by the job on the machine and scrubbed from what it reports.</dd>
-  </dl>
-  <pre><code>chuggy-linux register --api https://chuggy.vteng.io --token=<span class="code-dim">…</span></code></pre>
-</section>
-
-<section class="opinions" aria-labelledby="opinions-h">
-  <h2 id="opinions-h">What we have learned about long-running agents.</h2>
-  <p class="opinions-intro">chuggy is opinionated. The opinions come from running agents unattended for a long time, on our own code and on a shipped game, and from watching where they go wrong.</p>
-  <ul class="opinions-list">
-    <li><b>Agents say they are done when they are not.</b> So nothing lands on an agent's word. Checks you wrote run, a different agent reviews, and a person approves where it matters.</li>
-    <li><b>Long runs crash, and a crash must not land something twice.</b> So one part of chuggy makes every decision and writes it down before acting. After a restart it reads the record and carries on.</li>
-    <li><b>Context is the scarce thing.</b> So a lead that has spent its context hands off to a successor with a note, and a ticket carries what its worker needs rather than the whole history.</li>
-    <li><b>Nobody trusts what they cannot audit.</b> So every attempt is on the record, and a reviewer can read exactly what ran, under which model, at what cost.</li>
-    <li><b>The rules have to be right before the code is.</b> So chuggy's core is a formal model, and the implementation is checked against the traces that model produces.</li>
-  </ul>
-</section>
-
-<section class="status" id="status" aria-labelledby="status-h">
-  <h2 id="status-h">Where it is.</h2>
-  <div class="status-grid">
-    <div class="status-now">
-      <h3>Today</h3>
-      <ul>
-        <li>chuggy builds chuggy. Its own tickets run on it, and more than 750 pull requests have landed this way on the current version.</li>
-        <li><a href="https://www.twitch.tv/battlebuffet">BattleBuffet</a>, a game, is built on chuggy and streamed on Twitch.</li>
-        <li>The first outside team is running work on its own machines.</li>
-        <li>Runners for Linux, Macs and Windows. Claude Code and Codex as agents.</li>
-      </ul>
-    </div>
-    <div class="status-next">
-      <h3>Next</h3>
-      <ul>
-        <li>Runners we host, so a team can start with nothing installed, and machines that join from the cloud when the queue is long.</li>
-        <li>More kinds of workload on more kinds of machine, starting with Unity on Windows and large assets tracked beside the code.</li>
-        <li>Shipping what the fleet builds, with accounts, data, payments and domains ready to use, so that approving a change can mean it goes live.</li>
-      </ul>
-    </div>
+<section class="proof" aria-labelledby="proof-h">
+  <h2 id="proof-h">Built on itself</h2>
+  <div class="proof-body">
+    <p>chuggy's own development runs on chuggy. Each change to it is a ticket that moved through the graph, passed its checks, and was approved by one of us before it landed. A game studio ships on it.</p>
+    <p>The core is a formal model, and the implementation is held to the traces that model produces. The <a href="https://github.com/kasofsk/chuggy">orchestrator</a> is public on GitHub, and the runners for <a href="https://github.com/kasofsk/chuggy-linux">Linux</a>, <a href="https://github.com/kasofsk/chuggy-darwin">macOS</a> and <a href="https://github.com/kasofsk/chuggy-windows">Windows</a> are open source. The <a href="/docs">docs</a> describe how a project is set up and how its jobs run.</p>
   </div>
 </section>
 
-<section class="developers" id="developers" aria-labelledby="developers-h">
-  <h2 id="developers-h">For developers</h2>
-  <div class="dev-grid">
-    <div class="dev-item">
-      <h3>Your repository names the environment</h3>
-      <p>A project is one or more GitHub repositories. Each holds configurations in <code>.chug/configurations/</code> that name the image a job runs in or the capabilities it needs, the work stage, the evaluation stages of check commands or reviewing agents, and how a ticket lands: a push, a pull request, or a pull request then a merge. Every key is in the <a href="https://chuggy.vteng.io/api/v1/configuration-schema">published schema</a>.</p>
-    </div>
-    <div class="dev-item">
-      <h3>A job is a container of your image</h3>
-      <p>It runs as uid 1000 with chuggy's runtime mounted read-only, the repository cloned to <code>/workspace/repository</code>, and 2 CPUs and 4 GiB unless the configuration asks for more. Build caches, Docker inside a job, and jobs on the machine itself are in the <a href="/docs">docs</a>.</p>
-    </div>
-    <div class="dev-item">
-      <h3>Two GitHub Apps split authority</h3>
-      <p>Chuggy Portal lands finished work, and a repository rule can make it the only thing besides admins allowed to update <code>main</code>. Chuggy Worker is what a job's git credential is minted under, and the same rule refuses it on <code>main</code>.</p>
-    </div>
-    <div class="dev-item">
-      <h3>Your own coding agent gets the same tools</h3>
-      <p>On Linux, one line gives Claude Code the tools a chuggy session has, under your own sign-in.</p>
-      <pre><code>claude mcp add chuggy -- chuggy-linux mcp --site https://chuggy.vteng.io --workspace <span class="code-dim">…</span> --project <span class="code-dim">…</span></code></pre>
-    </div>
-    <div class="dev-item">
-      <h3>The lead is an agent with a mailbox</h3>
-      <p>Each turn it sees the project's state, the tickets ready to run, and the refusals it has standing. It answers with what to dispatch, what to hold and why. A ticket leaves a hold by being authored again. Members can open an inquiry and ask it anything.</p>
-    </div>
-    <div class="dev-item">
-      <h3>The code is on GitHub</h3>
-      <p>The orchestrator and its cluster are public to read. The runners and the worker core are MIT.</p>
-    </div>
+<section class="company" id="company" aria-labelledby="company-h">
+  <h2 id="company-h">The company</h2>
+  <div class="company-body">
+    <p>chuggy is built by <a href="https://www.linkedin.com/in/geoffgolder/">Geoff Golder</a> and <a href="https://github.com/davemo88">Dave</a>, in the open. We are forming the company now, and we want to hear from early investors, design partners, and engineers who want to build this with us.</p>
   </div>
-
-  <table class="repos">
-    <thead><tr><th scope="col">Repository</th><th scope="col">What it is</th><th scope="col">License</th></tr></thead>
-    <tbody>
-      <tr><td><a href="https://github.com/kasofsk/chuggy">kasofsk/chuggy</a></td><td>The orchestrator: decisions, tickets, checks, the console and its API</td><td>None</td></tr>
-      <tr><td><a href="https://github.com/kasofsk/chuggy-docs">kasofsk/chuggy-docs</a></td><td>How chuggy runs a project's jobs, and how to make them fast</td><td>MIT</td></tr>
-      <tr><td><a href="https://github.com/kasofsk/chuggy-linux">kasofsk/chuggy-linux</a></td><td>The runner for Linux machines</td><td>MIT</td></tr>
-      <tr><td><a href="https://github.com/kasofsk/chuggy-darwin">kasofsk/chuggy-darwin</a></td><td>The runner for Macs</td><td>MIT</td></tr>
-      <tr><td><a href="https://github.com/kasofsk/chuggy-windows">kasofsk/chuggy-windows</a></td><td>The runner for Windows machines</td><td>MIT</td></tr>
-      <tr><td><a href="https://github.com/kasofsk/chuggy-common">kasofsk/chuggy-common</a></td><td>The worker core every runner shares</td><td>MIT</td></tr>
-      <tr><td><a href="https://github.com/kasofsk/track-record">kasofsk/track-record</a></td><td>Skip a check that already passed on the same inputs</td><td>MIT</td></tr>
-      <tr><td><a href="https://github.com/gdoteof/chuggy-fabric">gdoteof/chuggy-fabric</a></td><td>The cluster chuggy runs on, as configuration</td><td>None</td></tr>
-    </tbody>
-  </table>
 </section>
 
-<section class="request" id="request" aria-labelledby="request-h">
-  <div class="request-intro">
-    <h2 id="request-h">Request an invite</h2>
-    <p>chuggy is open by invitation while the first teams come aboard. Tell us about your team and what you want to run on it. If you are an investor or a partner, say so here.</p>
+<section class="access" id="access" aria-labelledby="access-h">
+  <div class="access-intro">
+    <h2 id="access-h">Request access</h2>
+    <p>chuggy is open by invitation. Tell us who you are and what you want to run on it.</p>
   </div>
   <form class="request-form" method="post" action="/request-access" novalidate>
     <div class="field">
@@ -235,24 +164,24 @@
       </div>
     </div>
     <fieldset class="field">
-      <legend>What brings you here</legend>
+      <legend>I am</legend>
       <div class="choices">
-        <label><input type="radio" name="interest" value="use" checked> I want to run my team's work on chuggy</label>
-        <label><input type="radio" name="interest" value="partner"> I want to build something with chuggy</label>
-        <label><input type="radio" name="interest" value="invest"> I am interested in investing</label>
-        <label><input type="radio" name="interest" value="other"> Something else</label>
+        <label><input type="radio" name="interest" value="use" checked> an engineer or a team that wants to run on chuggy</label>
+        <label><input type="radio" name="interest" value="partner"> a company that wants to build with chuggy</label>
+        <label><input type="radio" name="interest" value="invest"> an investor</label>
+        <label><input type="radio" name="interest" value="other"> something else</label>
       </div>
     </fieldset>
     <div class="field">
       <label for="about">A few words</label>
-      <textarea id="about" name="about" rows="4" maxlength="2000" placeholder="The team, the project, or the question you have."></textarea>
+      <textarea id="about" name="about" rows="4" maxlength="2000"></textarea>
     </div>
     <div class="field-hp" aria-hidden="true">
       <label for="website">Website</label>
       <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
     </div>
     <p class="form-actions">
-      <button class="button" type="submit">Send the request</button>
+      <button class="button" type="submit">Send</button>
       <span class="form-status" role="status" aria-live="polite"></span>
     </p>
   </form>
@@ -261,15 +190,15 @@
 </main>
 
 <footer class="foot">
-  <p>chuggy is built by Geoff and Dave.</p>
-  <p class="foot-links">
-    <a href="https://github.com/kasofsk">GitHub</a>
-    <a href="/docs">Docs</a>
-    <a href="/llms.txt">llms.txt</a>
-    <a href="/sign-in">Sign in</a>
-    <a href="https://www.linkedin.com/in/geoffgolder/">Geoff</a>
-    <a href="https://github.com/davemo88">Dave</a>
-  </p>
+  <div class="foot-inner">
+    <p class="foot-brand">chuggy</p>
+    <p class="foot-links">
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/kasofsk">GitHub</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/sign-in">Sign in</a>
+    </p>
+  </div>
 </footer>
 
 </body>

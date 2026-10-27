@@ -35,10 +35,8 @@ docker build -t chug.gy .
 - `main.go` is the server: the routes, the form's checks, the file, the
   policy headers and the redirects for short paths such as `/docs`.
 - `site/` is embedded into the binary: `index.html`, `requested.html`,
-  `site.css`, `site.js`, the two fonts, the favicon and the locomotive sprite.
-- `tools/sprite.py` draws `site/locomotive.svg`, the console's locomotive as a
-  four-frame sheet. It is the same drawing as the console's `Locomotive.tsx`
-  and `favicon.svg`; a change to one is a change to all three.
+  `site.css`, `site.js`, the fonts and the favicon. The work graph in the
+  hero is inline SVG in `index.html`.
 
 ## Reading the requests
 

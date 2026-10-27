@@ -305,7 +305,6 @@ func (s *server) handler() http.Handler {
 		mux.Handle("GET "+from, http.RedirectHandler(to, http.StatusFound))
 	}
 	mux.Handle("GET /fonts/", cacheFor(365*24*time.Hour, http.FileServerFS(assets)))
-	mux.Handle("GET /locomotive.svg", cacheFor(24*time.Hour, http.FileServerFS(assets)))
 	mux.Handle("GET /favicon.svg", cacheFor(24*time.Hour, http.FileServerFS(assets)))
 	mux.HandleFunc("GET /robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
