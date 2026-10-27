@@ -4,7 +4,7 @@
 # The docs are kasofsk/chuggy-docs at the commit below, fetched at build and
 # rendered by the binary at start. Moving the docs forward is moving the
 # commit and building again.
-ARG CHUGGY_DOCS_COMMIT=d2c73a0c31d8ae171ced4d6acc3575244be2732d
+ARG CHUGGY_DOCS_COMMIT=06f1c0731eb37f62762ffa88d54926d6c10d9a6a
 
 FROM golang:1.24-bookworm@sha256:1a6d4452c65dea36aac2e2d606b01b4a029ec90cc1ae53890540ce6173ea77ac AS build
 ARG CHUGGY_DOCS_COMMIT

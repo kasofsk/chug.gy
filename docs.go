@@ -7,8 +7,9 @@
 // were rendered here.
 //
 // THE README IS THE TABLE OF CONTENTS. The docs repository's README lists its
-// pages in reading order, each as a link to a file under docs/, and that list
-// is the sidebar. A page not in the list is still served, but not listed.
+// pages in reading order, each as a link to a file under docs/, an indented
+// entry under the one it belongs to, and that list is the sidebar. A page not
+// in the list is still served, but not listed.
 //
 // LINKS BETWEEN PAGES ARE REWRITTEN, NOT THE SOURCE. A docs page links to
 // another as `host.md` or `jobs/host.md`, which GitHub resolves against the
@@ -39,7 +40,9 @@ const docsPrefix = "/docs"
 
 type docPage struct {
 	// The path this page is served at, such as /docs or /docs/jobs/host.
-	Path        string
+	Path string
+	// Whether the README lists it under another page.
+	Nested      bool
 	Title       string
 	Description string
 	Body        template.HTML
@@ -55,7 +58,7 @@ type docs struct {
 }
 
 // The README's page list: a bullet whose link is a file under docs/.
-var readmeEntry = regexp.MustCompile(`(?m)^- \[([^\]]+)\]\(docs/([^)#]+\.md)\)`)
+var readmeEntry = regexp.MustCompile(`(?m)^( *)- \[([^\]]+)\]\(docs/([^)#]+\.md)\)`)
 
 // Reads a docs checkout and renders every page. host is the name the rendered
 // llms.txt and absolute links carry.
@@ -96,7 +99,8 @@ func loadDocs(dir, host string) (*docs, error) {
 		return nil, err
 	}
 	for _, m := range readmeEntry.FindAllSubmatch(readme, -1) {
-		if page, ok := d.pages[docPath(string(m[2]))]; ok {
+		if page, ok := d.pages[docPath(string(m[3]))]; ok {
+			page.Nested = len(m[1]) > 0
 			d.listed = append(d.listed, page)
 		}
 	}
@@ -111,13 +115,16 @@ func loadDocs(dir, host string) (*docs, error) {
 	return d, nil
 }
 
-// The path a docs file is served at: docs/index.md is /docs, and any other
-// drops its extension under it.
+// The path a docs file is served at: docs/index.md is /docs, a directory's
+// index.md is the directory, and any other file drops its extension.
 func docPath(source string) string {
-	if source == "index.md" {
+	source = strings.TrimSuffix(source, ".md")
+	source = strings.TrimSuffix(source, "index")
+	source = strings.TrimSuffix(source, "/")
+	if source == "" {
 		return docsPrefix
 	}
-	return docsPrefix + "/" + strings.TrimSuffix(source, ".md")
+	return docsPrefix + "/" + source
 }
 
 var frontMatter = regexp.MustCompile(`(?s)\A---\n(.*?)\n---\n`)

@@ -340,6 +340,7 @@ section p { color: var(--text-2); max-width: var(--measure); }
 .docs-nav li a { display: block; padding: 6px 0 6px 14px; margin-left: -1px; color: var(--text-2); text-decoration: none; border-left: 1px solid transparent; }
 .docs-nav li a:hover { color: var(--text); }
 .docs-nav li a[aria-current="page"] { color: var(--text); border-left-color: var(--text); }
+.docs-nav li.nested a { padding-left: 28px; font-size: 0.9rem; }
 .docs-nav-foot { margin-top: 20px; font-size: 0.875rem; }
 .docs-nav-foot a { color: var(--text-3); }
 .docs-main { min-width: 0; max-width: 72ch; }
@@ -373,6 +374,6 @@ section p { color: var(--text-2); max-width: var(--measure); }
   .docs { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .docs-nav { position: static; }
   .docs-nav ol { display: flex; flex-wrap: wrap; gap: 4px 18px; border-left: 0; }
-  .docs-nav li a { padding: 4px 0; border-left: 0; margin: 0; }
+  .docs-nav li a, .docs-nav li.nested a { padding: 4px 0; border-left: 0; margin: 0; font-size: inherit; }
   .docs-nav li a[aria-current="page"] { text-decoration: underline; text-underline-offset: 0.25em; }
 }

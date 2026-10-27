@@ -22,7 +22,7 @@ func fakeDocs(t *testing.T) string {
 			t.Fatal(err)
 		}
 	}
-	write("README.md", "# chuggy docs\n\n- [Jobs](docs/index.md)\n- [A job's container](docs/jobs/container.md)\n- [Not a page](docs/missing.md)\n")
+	write("README.md", "# chuggy docs\n\n- [Jobs](docs/index.md)\n  - [A job's container](docs/jobs/container.md)\n- [Not a page](docs/missing.md)\n")
 	write("llms.txt", "# chuggy docs\n\n- [Overview](https://raw.githubusercontent.com/kasofsk/chuggy-docs/main/docs/index.md): the terms.\n- [A job's container](https://raw.githubusercontent.com/kasofsk/chuggy-docs/main/docs/jobs/container.md): start, user.\n")
 	write("docs/index.md", "---\ntitle: Jobs\ndescription: What chuggy runs a project's stages in.\n---\n\n# Jobs\n\nSee [the container](jobs/container.md) and [its user](jobs/container.md#user).\n")
 	write("docs/jobs/container.md", "---\ntitle: A job's container\ndescription: \"Every job, in a container.\"\n---\n\n# A job's container\n\n## User\n\nBack to the [index](../index.md), the [runner](https://github.com/kasofsk/chuggy-linux#configure), and [below](#user).\n\n| Key | Value |\n|---|---|\n| uid | 1000 |\n")
@@ -50,7 +50,7 @@ func TestDocsPagesRender(t *testing.T) {
 		`href="/docs/jobs/container"`,
 		`href="/docs/jobs/container#user"`,
 		`aria-current="page">Jobs</a>`,
-		`<a href="/docs/jobs/container">A job&#39;s container</a>`,
+		`<li class="nested"><a href="/docs/jobs/container">A job&#39;s container</a>`,
 	} {
 		if !strings.Contains(body, want) {
 			t.Errorf("/docs lacks %q", want)
@@ -102,6 +102,19 @@ func TestWithoutDocsTheRoutesRedirect(t *testing.T) {
 		w := get(h, "chug.gy", p)
 		if w.Code != 302 || !strings.Contains(w.Header().Get("Location"), "github") {
 			t.Errorf("%s answered %d %s", p, w.Code, w.Header().Get("Location"))
+		}
+	}
+}
+
+func TestDocPaths(t *testing.T) {
+	for source, want := range map[string]string{
+		"index.md":          "/docs",
+		"jobs/index.md":     "/docs/jobs",
+		"jobs/container.md": "/docs/jobs/container",
+		"repository.md":     "/docs/repository",
+	} {
+		if got := docPath(source); got != want {
+			t.Errorf("docPath(%q) = %q, want %q", source, got, want)
 		}
 	}
 }
