@@ -153,7 +153,7 @@ a:hover { text-decoration-color: currentColor; }
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 28px 64px;
-  align-items: end;
+  align-items: start;
 }
 .hero h1 { max-width: 11ch; }
 .lead {
@@ -165,7 +165,7 @@ a:hover { text-decoration-color: currentColor; }
 .actions { display: flex; gap: 12px 28px; flex-wrap: wrap; align-items: center; margin-top: 28px; }
 @media (min-width: 920px) {
   .hero-text { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
-  .hero-aside { padding-bottom: 10px; }
+  .hero-aside { padding-top: 0.35rem; }
 }
 
 .graph { margin: clamp(40px, 6vw, 72px) 0 0; }
