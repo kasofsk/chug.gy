@@ -230,23 +230,36 @@ a:hover { text-decoration-color: currentColor; }
 .graph .node-absent { opacity: 0; pointer-events: none; }
 .graph .node:focus-visible circle { stroke: var(--signal); }
 
-/* Pulling back: the cluster shrinks into the rest of the project. */
-.graph .zoomed .cluster { transform: scale(0.34); }
-.graph .field { opacity: 0; transition: opacity 1.1s ease 0.25s; pointer-events: none; }
-.graph .zoomed .field { opacity: 1; }
+/* Pulling back, in two beats: first the strands beside ours, then the whole.
+   The field is drawn for the second beat and scaled up for the first, so
+   the camera keeps moving between them. */
+.graph-svg { overflow: hidden; }
+.graph .zoom-1 .cluster { transform: scale(0.6); }
+.graph .zoom-2 .cluster { transform: scale(0.3); }
+.graph .field { transform-origin: 500px 205px; transform: scale(3.3); opacity: 0; transition: transform 0.9s cubic-bezier(0.2, 0.6, 0.2, 1), opacity 0.9s ease; pointer-events: none; }
+.graph .zoom-1 .field { transform: scale(2); opacity: 1; }
+.graph .zoom-2 .field { transform: scale(1); opacity: 1; transition-duration: 1.2s; }
+.graph .zoom-2 .cluster { transition-duration: 1.2s; }
 .graph .fedge { fill: none; stroke: var(--edge); stroke-width: 0.9; transition: stroke 0.6s ease; }
 .graph .fedge-done { stroke: var(--rule-strong); }
 .graph .fedge-cross { stroke-dasharray: 2 2; }
+.graph .fedge-on { stroke: var(--text-3); }
 .graph .fnode { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1; transition: fill 0.6s ease, stroke 0.6s ease; }
 .graph .fnode-landed { fill: var(--rule-strong); stroke: var(--rule-strong); }
 .graph .fnode-working { fill: var(--go-soft); stroke: var(--go); stroke-width: 1.25; }
-.graph .fgoal { font-family: var(--sans); font-size: 9.5px; fill: var(--text-3); }
-.graph .fgoal-ours { fill: var(--text); font-size: 10.5px; font-weight: 500; }
+.graph .fnode-m { stroke: var(--text-2); stroke-width: 1.25; }
+.graph .fnode-m.fnode-landed { fill: var(--text-2); stroke: var(--text-2); }
+.graph .flabel { font-family: var(--sans); font-size: 8.5px; fill: var(--text-3); }
+.graph .flabel-ours { fill: var(--text); font-size: 10.5px; font-weight: 500; }
+.graph .fmilestone { font-family: var(--serif); font-size: 11.5px; fill: var(--text); text-anchor: middle; }
+.graph .fmilestone-end { text-anchor: end; }
+.graph .fmilestone { opacity: 0; transition: opacity 0.6s ease 0.6s; }
+.graph .zoom-2 .fmilestone { opacity: 1; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) .graph .fnode-landed { fill: var(--text-3); stroke: var(--text-3); }
   :root:not([data-theme="light"]) .graph .fedge-done { stroke: var(--text-3); }
 }
-.graph .zoomed .node text { opacity: 0; }
+.graph .zoom-1 .node text, .graph .zoom-2 .node text { opacity: 0; }
 .graph .node text { transition: opacity 0.4s ease, fill 0.5s ease; }
 
 /* The lead's note. */
@@ -440,7 +453,7 @@ section p { color: var(--text-2); max-width: var(--measure); }
   .graph .edge { stroke-width: 2; }
   .graph .record text { font-size: 17px; }
   .graph .record-title { font-size: 24px; }
-  .graph .note, .graph .fgoal { display: none; }
+  .graph .note, .graph .flabel, .graph .fmilestone { display: none; }
 }
 @media (max-width: 760px) {
   .access, .field-row { grid-template-columns: minmax(0, 1fr); }

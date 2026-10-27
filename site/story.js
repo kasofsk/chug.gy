@@ -52,7 +52,7 @@
   // above. The scene's end state is all of them together.
   var SCENES = [
     { id: "hero", set: {} },
-    { id: "why", set: { zoom: true, caption: null } },
+    { id: "why", set: { zoom: 1, caption: null } },
     {
       id: "graph",
       set: { zoom: false, t: { 418: { s: "draft" } }, caption: "#418 is drafted in a thread. It waits on #415 and #416, so it is placed by them." },
@@ -122,84 +122,106 @@
     return "M" + (a.x + 9) + "," + a.y + " C" + mx + "," + a.y + " " + mx + "," + b.y + " " + (b.x - 9) + "," + b.y;
   }
 
-  // The rest of the project, around the cluster, for the pulled-back view:
-  // clusters of tickets, each with its own goal and its own frontier, with
-  // a few edges crossing between them and into ours.
-  var GOALS = [
-    "macOS runner under launchd", "Windows runner", "The lead's inbox", "The decision log",
-    "Trace replay", "Build caches", "Docker in a job", "Threads: drafts from chat", "Rulesets on GitHub",
-    "Approval by a person", "Credential scrubbing", "The invite flow", "Sizing a stage", "llms.txt and the docs",
-    "Personal runners", "Shared pools", "Bedrock and Vertex", "Codex login", "Landing as a pull request",
-    "Parked tickets", "The Runners page", "Job logs", "The project's image", "Workspace administration",
-    "Retired bindings", "Evaluator tasks", "chug.gy, the site", "The fabric", "The formal model",
-    "The ticket's brief", "Refusals", "Cost per attempt"
+  // The rest of the project, around the cluster, for the pulled-back view.
+  // An organization's work is not islands: strands of tickets run left to
+  // right through time, cross into each other, converge on a milestone and
+  // fan out again, and all of it converges on the next release. Ours is the
+  // Linux runner, in three of the strands.
+  var STRANDS = [
+    "Threads", "The lead", "Decision log", "Docs", "Credentials", "Job containers", "Job logs",
+    "Build caches", "Approvals", "Rulesets on GitHub", "Invites", "The site", "Trace replay", "Cost per attempt"
   ];
-  var HERO_SCALE = 0.34, HERO_ORIGIN = { x: 500, y: 205 };
+  var MILESTONES = [
+    { x: 150, name: "Tickets from chat", lanes: [0, 4] },
+    { x: 300, name: "Shared pools", lanes: [8, 13] },
+    { x: 700, name: "Runners on every platform", lanes: [2, 7] },
+    { x: 860, name: "The lead in the inbox", lanes: [8, 12] },
+    { x: 975, name: "Release 1.0", lanes: [0, 13], end: true }
+  ];
+  var HERO_SCALE = 0.3, HERO_ORIGIN = { x: 500, y: 205 }, FRONTIER = 540;
+  var HERO_LANES = [4, 6], HERO_GAP = [340, 664];
   function heroPoint(t) { return { x: HERO_ORIGIN.x + (t.x - HERO_ORIGIN.x) * HERO_SCALE, y: HERO_ORIGIN.y + (t.y - HERO_ORIGIN.y) * HERO_SCALE }; }
+  function laneY(i) { return 30 + i * 36; }
 
   var FIELD = (function () {
-    var seed = 11;
+    var seed = 23;
     function rnd() { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }
-    function pick(list) { return list[Math.floor(rnd() * list.length)]; }
-    var COLS = 6, ROWS = 5, CW = 1000 / COLS, CH = 540 / ROWS;
-    var nodes = [], edges = [], clusters = [], cells = {};
-    var goal = 0;
-    for (var r = 0; r < ROWS; r++) {
-      for (var c = 0; c < COLS; c++) {
-        if ((c === 2 || c === 3) && (r === 1 || r === 2)) continue; // where our cluster sits
-        var x0 = c * CW + 16, y0 = r * CH + 10, k = 3 + Math.floor(rnd() * 3), gap = (CW - 36) / (k - 1);
-        var cluster = { name: GOALS[goal++ % GOALS.length], cols: [], x: x0, y: y0 + CH - 16, cell: [c, r] };
-        var progress = rnd() < 0.15 ? 1 : rnd() < 0.1 ? 0 : 0.2 + rnd() * 0.75;
-        for (var i = 0; i < k; i++) {
-          var n = 1 + Math.floor(rnd() * 3), col = [];
-          for (var j = 0; j < n; j++) {
-            var node = { x: x0 + i * gap, y: y0 + 14 + (CH - 52) / 2 + (j - (n - 1) / 2) * 24, waits: [], cluster: cluster };
-            var frontier = Math.floor(progress * k);
-            node.s = i < frontier ? "landed" : i === frontier && progress < 1 ? (rnd() < 0.55 ? "working" : "waiting") : "waiting";
-            if (progress >= 1) node.s = "landed";
-            if (i > 0) {
-              var prev = cluster.cols[i - 1], m = 1 + (rnd() < 0.4 ? 1 : 0);
-              for (var q = 0; q < m; q++) { var w = pick(prev); if (node.waits.indexOf(w) < 0) node.waits.push(w); }
-            }
-            col.push(node); nodes.push(node);
-          }
-          cluster.cols.push(col);
-        }
-        clusters.push(cluster); cells[c + "," + r] = cluster;
-      }
-    }
-    nodes.forEach(function (node) { node.waits.forEach(function (w) { edges.push({ from: w, to: node }); }); });
-    // Between clusters: a few edges from one goal's end to the next one's start, and into ours.
-    var heroRoots = [402, 403, 405].map(function (n) { return heroPoint(byN[n]); });
-    var heroEnd = heroPoint(byN[421]);
-    clusters.forEach(function (a) {
-      if (rnd() > 0.5) return;
-      var from = pick(a.cols[a.cols.length - 1]), c = a.cell[0] + 1, r = a.cell[1];
-      if (c >= COLS) return;
-      var b = cells[c + "," + r];
-      if (!b) { var root = pick(heroRoots); edges.push({ from: from, to: { x: root.x, y: root.y, s: "waiting", hero: true }, cross: true }); return; }
-      edges.push({ from: from, to: pick(b.cols[0]), cross: true });
+    var nodes = [], edges = [], lanes = [];
+    MILESTONES.forEach(function (m) {
+      m.y = (laneY(m.lanes[0]) + laneY(m.lanes[1])) / 2;
+      m.s = m.x < FRONTIER - 60 ? "landed" : "waiting";
+      m.waits = []; m.milestone = true;
+      nodes.push(m);
     });
-    var after = cells["4,2"] || cells["4,1"];
-    if (after) edges.push({ from: { x: heroEnd.x, y: heroEnd.y, s: "waiting", hero: true }, to: pick(after.cols[0]), cross: true });
-    return { nodes: nodes, edges: edges, clusters: clusters };
+    function settle(node, offset) {
+      var deps = node.waits.every(function (w) { return w.s === "landed"; });
+      if (node.x < FRONTIER + offset - 20 && deps) node.s = "landed";
+      else if (node.x < FRONTIER + offset + 70 && deps && rnd() < 0.7) node.s = "working";
+      else node.s = "waiting";
+    }
+    var heroRoots = { 4: heroPoint(byN[402]), 5: heroPoint(byN[403]), 6: heroPoint(byN[405]) };
+    STRANDS.forEach(function (name, i) {
+      var y = laneY(i), x = 24 + rnd() * 30, prev = null, lane = [], offset = (rnd() - 0.5) * 140, first = true;
+      while (x < 1000) {
+        var m = null;
+        MILESTONES.forEach(function (c) { if (i >= c.lanes[0] && i <= c.lanes[1] && x > c.x - 38 && x < c.x + 38) m = c; });
+        if (m) {
+          if (prev) edges.push({ from: prev, to: m, converge: true });
+          if (m.end) break;
+          prev = m; x = m.x + 42 + rnd() * 12;
+          continue;
+        }
+        if (i >= HERO_LANES[0] && i <= HERO_LANES[1] && x > HERO_GAP[0] && x < HERO_GAP[1]) {
+          if (prev) edges.push({ from: prev, to: { x: heroRoots[i].x, y: heroRoots[i].y, s: "waiting" }, cross: true });
+          prev = null; x = HERO_GAP[1];
+          continue;
+        }
+        var node = { x: x, y: y + (rnd() - 0.5) * 10, waits: [], lane: i, label: first ? name : null };
+        first = false;
+        // Mostly the strand's last ticket, sometimes the one before it, so a
+        // strand carries two tickets at once now and then.
+        var back = prev;
+        if (lane.length > 1 && prev === lane[lane.length - 1] && rnd() < 0.3) back = lane[lane.length - 2];
+        if (back) { node.waits.push(back); edges.push({ from: back, to: node }); }
+        if (i > 0 && rnd() < 0.3) {
+          var near = lanes[i - 1].filter(function (o) { return o.x > x - 95 && o.x < x - 25; });
+          if (near.length) { var o = near[near.length - 1]; node.waits.push(o); edges.push({ from: o, to: node, cross: true }); }
+        }
+        settle(node, offset);
+        lane.push(node); nodes.push(node); prev = node;
+        x += 40 + rnd() * 22;
+      }
+      lanes.push(lane);
+    });
+    // Ours converges on the platform milestone with the macOS and Windows strands.
+    var he = heroPoint(byN[421]);
+    edges.push({ from: { x: he.x, y: he.y, s: "waiting" }, to: MILESTONES[2], cross: true });
+    // Milestones wait on what converges on them.
+    edges.forEach(function (e) { if (e.converge) e.to.waits.push(e.from); });
+    return { nodes: nodes, edges: edges, strands: STRANDS.length };
   })();
 
+  function fieldEdge(a, b) {
+    var mx = (a.x + b.x) / 2;
+    return "M" + (a.x + 4).toFixed(1) + "," + a.y.toFixed(1) + " C" + mx.toFixed(1) + "," + a.y.toFixed(1) + " " + mx.toFixed(1) + "," + b.y.toFixed(1) + " " + (b.x - 4).toFixed(1) + "," + b.y.toFixed(1);
+  }
   function fieldMarkup() {
     var out = "";
     FIELD.edges.forEach(function (e, i) {
       e.i = i;
-      out += '<path class="fedge' + (e.cross ? " fedge-cross" : "") + (e.from.s === "landed" ? " fedge-done" : "") + '" data-fe="' + i + '" d="' + edgePath({ x: e.from.x - 7, y: e.from.y }, { x: e.to.x + 7, y: e.to.y }) + '"/>';
+      out += '<path class="fedge' + (e.cross ? " fedge-cross" : "") + (e.from.s === "landed" ? " fedge-done" : "") + '" data-fe="' + i + '" d="' + fieldEdge(e.from, e.to) + '"/>';
     });
     FIELD.nodes.forEach(function (n, i) {
       n.i = i;
-      out += '<circle class="fnode fnode-' + n.s + '" data-fn="' + i + '" cx="' + n.x.toFixed(1) + '" cy="' + n.y.toFixed(1) + '" r="3"/>';
+      out += '<circle class="fnode' + (n.milestone ? " fnode-m" : "") + ' fnode-' + n.s + '" data-fn="' + i + '" cx="' + n.x.toFixed(1) + '" cy="' + n.y.toFixed(1) + '" r="' + (n.milestone ? 5.5 : 3) + '"/>';
+      if (n.label) out += '<text class="flabel" x="' + n.x.toFixed(1) + '" y="' + (n.y - 9).toFixed(1) + '">' + esc(n.label) + "</text>";
     });
-    FIELD.clusters.forEach(function (c) {
-      out += '<text class="fgoal" x="' + c.x + '" y="' + c.y + '">' + esc(c.name) + "</text>";
+    MILESTONES.forEach(function (m) {
+      out += '<text class="fmilestone' + (m.end ? " fmilestone-end" : "") + '" x="' + m.x + '" y="' + (m.y + 19).toFixed(1) + '">' + esc(m.name) + "</text>";
+      if (m.end) out += '<path class="fedge fedge-cross fedge-on" d="M' + (m.x + 6) + "," + m.y.toFixed(1) + " L" + (m.x + 40) + "," + m.y.toFixed(1) + '"/>';
     });
     var hp = heroPoint({ x: 60, y: 340 });
-    out += '<text class="fgoal fgoal-ours" x="' + hp.x.toFixed(1) + '" y="' + (hp.y + 30).toFixed(1) + '">Linux runner on rootless Podman</text>';
+    out += '<text class="flabel flabel-ours" x="' + hp.x.toFixed(1) + '" y="' + (hp.y + 26).toFixed(1) + '">Linux runner on rootless Podman</text>';
     return '<g class="field">' + out + "</g>";
   }
   function field() { return fieldMarkup(); }
@@ -218,7 +240,7 @@
   }
   function paintField(n) {
     var el = svg.querySelector('[data-fn="' + n.i + '"]');
-    if (el) el.setAttribute("class", "fnode fnode-" + n.s);
+    if (el) el.setAttribute("class", "fnode" + (n.milestone ? " fnode-m" : "") + " fnode-" + n.s);
     FIELD.edges.forEach(function (e) {
       if (e.from !== n) return;
       var p = svg.querySelector('[data-fe="' + e.i + '"]');
@@ -233,8 +255,9 @@
   // The pulled-back scene is captioned by what the drawing counts.
   (function () {
     var working = FIELD.nodes.filter(function (n) { return n.s === "working"; }).length + 2;
-    SCENES[1].set.caption = "The same cluster in the whole of the project: " + (FIELD.clusters.length + 1) + " goals, " +
-      (FIELD.nodes.length + TICKETS.length) + " tickets, " + working + " of them in progress. One graph, and every ticket in it says what it waits on.";
+    var end = MILESTONES.filter(function (m) { return m.end; })[0];
+    SCENES[1].set.caption = "Pulled back. The strands beside ours: other people, other agents, their work crossing into ours and ours into theirs.";
+    SCENES[1].steps = [{ at: 1800, set: { zoom: 2, caption: "The whole of the project: " + (FIELD.nodes.length + TICKETS.length) + " tickets on " + FIELD.strands + " strands, " + working + " of them in progress, all of it converging on " + end.name + "." } }];
   })();
 
 
@@ -401,7 +424,8 @@
       el.classList.toggle("slot-on", !!label);
       if (!el.classList.contains("slot-fixed")) slotText(el.querySelector("text"), label || "");
     });
-    svg.classList.toggle("zoomed", !!state.zoom);
+    svg.classList.toggle("zoom-1", state.zoom === 1);
+    svg.classList.toggle("zoom-2", state.zoom === 2);
     fieldLife(!!state.zoom);
     figure.classList.toggle("compact", !state.zoom && !state.plane);
     svg.classList.toggle("plane-on", !!state.plane);
