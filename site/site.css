@@ -252,9 +252,8 @@ section p { color: var(--text-2); max-width: var(--measure); }
 .stations span { display: block; font-size: 0.9375rem; color: var(--text-2); line-height: 1.4; margin-top: 4px; }
 .path-note { margin-top: 36px; font-family: var(--serif); font-size: 1.25rem; color: var(--text) !important; max-width: 48ch !important; }
 
-.proof-body, .company-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; }
-.proof-body p, .company-body p { margin: 0; font-size: 1.0625rem; }
-.company-body p { grid-column: 1; }
+.proof-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; }
+.proof-body p { margin: 0; font-size: 1.0625rem; }
 
 /* ------------------------------------------------------------ the form -- */
 
@@ -312,7 +311,7 @@ section p { color: var(--text-2); max-width: var(--measure); }
 /* --------------------------------------------------------------- narrow -- */
 
 @media (max-width: 760px) {
-  .why-body, .pillars, .proof-body, .company-body, .access, .field-row { grid-template-columns: minmax(0, 1fr); }
+  .why-body, .pillars, .proof-body, .access, .field-row { grid-template-columns: minmax(0, 1fr); }
   .pillars { gap: 0; }
   .stations { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .stations li { padding: 0 0 20px 28px; }
