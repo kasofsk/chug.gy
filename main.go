@@ -14,6 +14,8 @@
 //	CHUG_SITE_HOST              the canonical host; a request for another host
 //	                            is redirected to it, except on loopback and for
 //	                            /healthz
+//	CHUG_SITE_DOCS              a checkout of kasofsk/chuggy-docs, rendered at
+//	                            /docs; unset, /docs and /llms.txt go to GitHub
 package main
 
 import (
@@ -72,17 +74,21 @@ func init() {
 }
 
 // Redirects: short paths on this host that stand for pages elsewhere, so a
-// link printed anywhere can say chug.gy/docs and keep working when the docs
-// move.
+// link printed anywhere can say chug.gy/linux and keep working when the
+// runner's page moves. /docs and /llms.txt are among them only when the docs
+// are not rendered here.
 var redirects = map[string]string{
+	"/app":     "https://chuggy.vteng.io/",
+	"/sign-in": "https://chuggy.vteng.io/",
+	"/github":  "https://github.com/kasofsk",
+	"/linux":   "https://github.com/kasofsk/chuggy-linux#readme",
+	"/mac":     "https://github.com/kasofsk/chuggy-darwin#readme",
+	"/windows": "https://github.com/kasofsk/chuggy-windows#readme",
+}
+
+var docsRedirects = map[string]string{
 	"/docs":     "https://github.com/kasofsk/chuggy-docs#readme",
 	"/llms.txt": "https://raw.githubusercontent.com/kasofsk/chuggy-docs/main/llms.txt",
-	"/app":      "https://chuggy.vteng.io/",
-	"/sign-in":  "https://chuggy.vteng.io/",
-	"/github":   "https://github.com/kasofsk",
-	"/linux":    "https://github.com/kasofsk/chuggy-linux#readme",
-	"/mac":      "https://github.com/kasofsk/chuggy-darwin#readme",
-	"/windows":  "https://github.com/kasofsk/chuggy-windows#readme",
 }
 
 type config struct {
@@ -90,6 +96,7 @@ type config struct {
 	dataDir        string
 	adminTokenFile string
 	host           string
+	docsDir        string
 }
 
 func configFromEnv() config {
@@ -98,6 +105,7 @@ func configFromEnv() config {
 		dataDir:        os.Getenv("CHUG_SITE_DATA"),
 		adminTokenFile: os.Getenv("CHUG_SITE_ADMIN_TOKEN_FILE"),
 		host:           os.Getenv("CHUG_SITE_HOST"),
+		docsDir:        os.Getenv("CHUG_SITE_DOCS"),
 	}
 	if c.listen == "" {
 		c.listen = ":8080"
@@ -256,6 +264,7 @@ type server struct {
 	cfg     config
 	store   *requestStore
 	limit   *limiter
+	docs    *docs
 	started time.Time
 }
 
@@ -266,6 +275,17 @@ func newServer(cfg config) (*server, error) {
 			return nil, fmt.Errorf("the data directory: %w", err)
 		}
 		s.store = &requestStore{path: path.Join(cfg.dataDir, "requests.jsonl")}
+	}
+	if cfg.docsDir != "" {
+		host := cfg.host
+		if host == "" {
+			host = "chug.gy"
+		}
+		d, err := loadDocs(cfg.docsDir, host)
+		if err != nil {
+			return nil, fmt.Errorf("the docs: %w", err)
+		}
+		s.docs = d
 	}
 	return s, nil
 }
@@ -303,6 +323,15 @@ func (s *server) handler() http.Handler {
 	mux.Handle("GET /site.js", cacheFor(5*time.Minute, http.FileServerFS(assets)))
 	for from, to := range redirects {
 		mux.Handle("GET "+from, http.RedirectHandler(to, http.StatusFound))
+	}
+	if s.docs != nil {
+		mux.Handle("GET /docs", s.docsHandler())
+		mux.Handle("GET /docs/", s.docsHandler())
+		mux.HandleFunc("GET /llms.txt", s.llmsHandler)
+	} else {
+		for from, to := range docsRedirects {
+			mux.Handle("GET "+from, http.RedirectHandler(to, http.StatusFound))
+		}
 	}
 	mux.Handle("GET /fonts/", cacheFor(365*24*time.Hour, http.FileServerFS(assets)))
 	mux.Handle("GET /favicon.svg", cacheFor(24*time.Hour, http.FileServerFS(assets)))

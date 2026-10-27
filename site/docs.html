@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Page.Title}} · chuggy docs</title>
+<meta name="description" content="{{.Page.Description}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css?v={{.StylesKey}}">
+</head>
+<body class="docs-body">
+
+<header class="top">
+  <a class="brand" href="/">chuggy</a>
+  <nav class="top-nav" aria-label="Site">
+    <a href="/#why">Why</a>
+    <a href="/#how">How it works</a>
+    <a href="/docs" aria-current="true">Docs</a>
+    <a href="/sign-in">Sign in</a>
+    <a class="button button-small" href="/#access">Request access</a>
+  </nav>
+</header>
+
+<div class="docs">
+  <nav class="docs-nav" aria-label="Docs">
+    <p class="docs-nav-title">Docs</p>
+    <ol>
+    {{range .Listed}}
+      <li><a href="{{.Path}}"{{if eq .Path $.Page.Path}} aria-current="page"{{end}}>{{.Title}}</a></li>
+    {{end}}
+    </ol>
+    <p class="docs-nav-foot"><a href="/llms.txt">llms.txt</a></p>
+  </nav>
+  <main class="docs-main">
+    <article class="prose">
+      <h1>{{.Page.Title}}</h1>
+      {{if .Page.Description}}<p class="prose-lead">{{.Page.Description}}</p>{{end}}
+      {{.Page.Body}}
+    </article>
+    <p class="docs-source"><a href="{{.Source}}">This page on GitHub</a></p>
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <p class="foot-brand">chuggy</p>
+    <p class="foot-links">
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/kasofsk">GitHub</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/sign-in">Sign in</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
