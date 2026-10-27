@@ -16,6 +16,13 @@
   src: url(/fonts/newsreader-latin-italic.woff2) format("woff2");
 }
 @font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url(/fonts/jetbrains-mono-latin.woff2) format("woff2");
+}
+@font-face {
   font-family: "Inter";
   font-style: normal;
   font-weight: 100 900;
@@ -43,9 +50,11 @@
   --on-dark-2: #a9a6ba;
   --serif: "Newsreader", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --sans: "Inter", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --measure: 60ch;
   --gutter: clamp(20px, 5vw, 56px);
   --width: 1120px;
+  --width-wide: 1360px;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -94,7 +103,7 @@ a:hover { text-decoration-color: currentColor; }
 /* ------------------------------------------------------------- header -- */
 
 .top {
-  max-width: var(--width);
+  max-width: var(--width-wide);
   margin: 0 auto;
   padding: 26px var(--gutter);
   display: flex;
@@ -142,63 +151,167 @@ a:hover { text-decoration-color: currentColor; }
 }
 .link-arrowless { font-size: 0.9375rem; font-weight: 500; align-self: center; }
 
-/* ---------------------------------------------------------------- hero -- */
+/* ------------------------------------------------------------- the story -- */
 
-.hero {
-  max-width: var(--width);
+/* The page's sections are scenes down the left; the one drawing stays on the
+   right and changes state as each scene is read. */
+.story {
+  max-width: var(--width-wide);
   margin: 0 auto;
-  padding: clamp(32px, 6vw, 80px) var(--gutter) 0;
-}
-.hero-text {
+  padding: 0 var(--gutter);
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 28px 64px;
+  grid-template-columns: minmax(0, 0.56fr) minmax(0, 1.44fr);
+  gap: 0 64px;
   align-items: start;
 }
-.hero h1 { max-width: 11ch; }
+.scenes { grid-column: 1; grid-row: 1; }
+.scene { min-height: 72vh; padding: 12vh 0; display: flex; flex-direction: column; justify-content: center; }
+.scene-hero { padding-top: clamp(24px, 5vw, 64px); min-height: 78vh; }
+.scene-hero h1 { font-size: clamp(2.5rem, 4.4vw, 3.6rem); max-width: 11ch; }
 .lead {
-  font-size: clamp(1.0625rem, 1.4vw, 1.1875rem);
+  font-size: clamp(1.0625rem, 1.3vw, 1.125rem);
   line-height: 1.55;
   color: var(--text-2);
-  max-width: 46ch;
+  margin-top: 24px;
 }
-.actions { display: flex; gap: 12px 28px; flex-wrap: wrap; align-items: center; margin-top: 28px; }
-@media (min-width: 920px) {
-  .hero-text { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); }
-  .hero-aside { padding-top: 0.35rem; }
-}
+.actions { margin-top: 28px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+.how-h { margin-bottom: 1.2em; }
+.pillar h3 { font-family: var(--serif); font-size: 1.75rem; font-weight: 500; letter-spacing: -0.01em; }
+.pillar p { margin-top: 14px; font-size: 1.0625rem; }
 
-.graph { margin: clamp(40px, 6vw, 72px) 0 0; }
-.graph-svg { width: 100%; height: auto; display: block; }
-.graph .edge { fill: none; stroke: var(--edge); stroke-width: 1.25; }
-.graph .edge-done { stroke: var(--edge-done); }
-.graph .node circle { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1.5; }
-.graph .node text { font-family: var(--sans); font-size: 13px; fill: var(--text-2); text-anchor: middle; }
-.graph .node-landed circle { fill: var(--node-done); stroke: var(--node-done); }
-.graph .node-landed text { fill: var(--text); }
-.graph .node-working circle { stroke: var(--signal); stroke-width: 2; fill: var(--signal-soft); }
-.graph .node-working text { fill: var(--text); }
-.graph .node-held circle { stroke: var(--signal); stroke-dasharray: 2.5 2.5; stroke-width: 1.75; }
-.graph .node-held text { fill: var(--text); }
-.graph figcaption { display: flex; gap: 8px 22px; flex-wrap: wrap; margin-top: 10px; font-size: 0.8125rem; color: var(--text-3); }
+.graph {
+  grid-column: 2; grid-row: 1;
+  position: sticky;
+  top: 24px;
+  margin: clamp(24px, 5vw, 64px) 0 0;
+  align-self: start;
+}
+.graph-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.graph figcaption { margin-top: 14px; transition: margin-top 0.7s ease; }
+.graph.compact figcaption { margin-top: -120px; }
+.graph-caption {
+  font-family: var(--serif);
+  font-size: 1.125rem;
+  color: var(--text) !important;
+  max-width: 48ch !important;
+  min-height: 2.8em;
+  transition: opacity 0.18s ease;
+}
+.graph-caption.caption-out { opacity: 0; }
+.graph-key { display: flex; gap: 8px 22px; flex-wrap: wrap; margin-top: 10px; font-size: 0.8125rem; color: var(--text-3) !important; }
 .key { display: inline-flex; align-items: center; gap: 8px; }
 .key::before { content: ""; width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--node-wait); }
 .key-landed::before { background: var(--node-done); border-color: var(--node-done); }
 .key-working::before { border-color: var(--signal); background: var(--signal-soft); }
 .key-held::before { border: 1.5px dashed var(--signal); }
 
-/* The one moment: the graph draws itself when the page opens. */
+/* Edges and nodes. The state is the class; the transition is the motion. */
+.graph .edge { fill: none; stroke: var(--edge); stroke-width: 1.25; transition: stroke 0.6s ease, opacity 0.6s ease; }
+.graph .edge-done { stroke: var(--edge-done); }
+.graph .edge-hidden { opacity: 0; }
+.graph .node { cursor: default; outline: none; transition: opacity 0.6s ease; }
+.graph .node circle { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1.5; transition: fill 0.5s ease, stroke 0.5s ease, stroke-width 0.5s ease; }
+.graph .node text { font-family: var(--sans); font-size: 14.5px; fill: var(--text-2); text-anchor: middle; transition: fill 0.5s ease; }
+.graph .node .num { font-family: var(--mono); font-size: 12px; fill: var(--text-3); letter-spacing: 0.02em; }
+.graph .node .stage { font-size: 12.5px; fill: var(--signal); }
+.graph .node-landed circle { fill: var(--node-done); stroke: var(--node-done); }
+.graph .node-landed .title { fill: var(--text); }
+.graph .node-working circle, .graph .node-checking circle { stroke: var(--signal); stroke-width: 2; fill: var(--signal-soft); }
+.graph .node-working .title, .graph .node-checking .title { fill: var(--text); }
+.graph .node-checking circle { stroke-dasharray: 2.5 2.5; }
+.graph .node-held circle { stroke: var(--signal); stroke-dasharray: 2.5 2.5; stroke-width: 1.75; }
+.graph .node-held .title { fill: var(--text); }
+.graph .node-draft circle { stroke: var(--text-3); stroke-dasharray: 2.5 2.5; }
+.graph .node-draft .title { fill: var(--text-3); font-style: italic; }
+.graph .node-absent { opacity: 0; pointer-events: none; }
+.graph .node:focus-visible circle { stroke: var(--signal); }
+
+/* Pulling back: the cluster shrinks into the rest of the project. */
+.graph .zoomed .cluster { transform: scale(0.42); }
+.graph .field { opacity: 0; transition: opacity 0.9s ease; pointer-events: none; }
+.graph .zoomed .field { opacity: 1; }
+.graph .fedge { fill: none; stroke: var(--edge); stroke-width: 0.8; }
+.graph .fedge-done { stroke: var(--rule-strong); }
+.graph .fnode { fill: var(--bg); stroke: var(--node-wait); stroke-width: 1; }
+.graph .fnode-done { fill: var(--rule-strong); stroke: var(--rule-strong); }
+.graph .zoomed .node text { opacity: 0; }
+.graph .node text { transition: opacity 0.4s ease, fill 0.5s ease; }
+
+/* The lead's note. */
+.graph .note { opacity: 0; transition: opacity 0.5s ease; pointer-events: none; }
+.graph .note-on .note { opacity: 1; }
+.graph .note rect { fill: var(--bg); stroke: var(--signal); stroke-width: 1; stroke-dasharray: 2.5 2.5; }
+.graph .note text { font-family: var(--sans); font-size: 12.5px; fill: var(--text-2); }
+.graph .note .note-head { fill: var(--signal); font-weight: 600; font-size: 13px; }
+
+/* The machines, and the lines from a ticket to the slot its job runs in. */
+.graph .plane { opacity: 0; transform: translateY(14px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.graph .plane-on .plane { opacity: 1; transform: none; }
+.graph .plane-title { font-family: var(--sans); font-size: 11px; fill: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; }
+.graph .plane-rule { stroke: var(--rule); stroke-width: 1; }
+.graph .machine-name { font-family: var(--mono); font-size: 13px; fill: var(--text); }
+.graph .machine-kind { font-family: var(--sans); font-size: 12px; fill: var(--text-3); }
+.graph .slot rect { fill: var(--bg); stroke: var(--rule-strong); stroke-width: 1; transition: fill 0.5s ease, stroke 0.5s ease; }
+.graph .slot-dotted rect { stroke-dasharray: 2.5 2.5; }
+.graph .slot text { font-family: var(--mono); font-size: 10.5px; fill: var(--text-3); text-anchor: middle; }
+.graph .slot-fixed rect { fill: var(--bg-band); }
+.graph .slot-on rect { fill: var(--signal-soft); stroke: var(--signal); stroke-dasharray: none; }
+.graph .slot-on text { fill: var(--text); }
+.graph .job { fill: none; stroke: var(--signal); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0; transition: opacity 0.6s ease; }
+.graph .job-on { opacity: 0.8; }
+
+/* One ticket's record, over the dimmed graph. */
+.graph .dim .cluster, .graph .dim .jobs { opacity: 0.18; }
+.graph .cluster { transform-origin: 500px 205px; transition: transform 0.9s cubic-bezier(0.2, 0.6, 0.2, 1), opacity 0.6s ease; }
+.graph .record { opacity: 0; transition: opacity 0.6s ease; pointer-events: none; }
+.graph .record-on .record { opacity: 1; }
+.graph .record-card { fill: var(--bg); stroke: var(--rule-strong); }
+.graph .record-title { font-family: var(--serif); font-size: 22px; fill: var(--text); }
+.graph .record-row { opacity: 0; transition: opacity 0.4s ease; }
+.graph .record-row.row-on { opacity: 1; }
+.graph .record-row circle { fill: var(--node-done); }
+.graph .record-row text { font-family: var(--sans); font-size: 14.5px; fill: var(--text-2); }
+.graph .record-stage { fill: var(--text) !important; font-weight: 600; }
+.graph .mono { font-family: var(--mono); font-size: 0.92em; }
+.graph .record-when { fill: var(--text-3) !important; }
+
+/* The card a hovered node shows. */
+.ticket-card {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  background: var(--ink);
+  color: var(--on-dark);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  padding: 8px 11px;
+  border-radius: 4px;
+  max-width: 280px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 3;
+}
+.ticket-card.card-on { opacity: 1; }
+.ticket-card b { font-weight: 500; color: var(--on-dark-2); margin-right: 6px; }
+.ticket-card span { display: block; color: var(--on-dark-2); }
+.ticket-card .mono { font-family: var(--mono); }
+
+/* The first moment: the graph draws itself when the page opens. */
 @media (prefers-reduced-motion: no-preference) {
-  .graph .edge { stroke-dasharray: 400; stroke-dashoffset: 400; animation: draw 1.4s cubic-bezier(0.2, 0.6, 0.2, 1) forwards; }
-  .graph .edge:nth-child(n+6) { animation-delay: 0.35s; }
-  .graph .edge:nth-child(n+10) { animation-delay: 0.7s; }
-  .graph .edge:nth-child(n+14) { animation-delay: 1s; }
-  .graph .node { opacity: 0; animation: appear 0.6s ease-out forwards; }
-  .graph .node:nth-child(n+4) { animation-delay: 0.3s; }
-  .graph .node:nth-child(n+8) { animation-delay: 0.65s; }
-  .graph .node:nth-child(n+11) { animation-delay: 1s; }
-  .graph .node:nth-child(13) { animation-delay: 1.3s; }
+  .graph .intro .edge { stroke-dasharray: 400; stroke-dashoffset: 400; animation: draw 1.4s cubic-bezier(0.2, 0.6, 0.2, 1) forwards; }
+  .graph .intro .edge:nth-child(n+6) { animation-delay: 0.35s; }
+  .graph .intro .edge:nth-child(n+10) { animation-delay: 0.7s; }
+  .graph .intro .edge:nth-child(n+14) { animation-delay: 1s; }
+  .graph .intro .node { opacity: 0; animation: appear 0.6s ease-out forwards; }
+  .graph .intro .node[data-i="3"], .graph .intro .node[data-i="4"], .graph .intro .node[data-i="5"] { animation-delay: 0.3s; }
+  .graph .intro .node[data-i="6"], .graph .intro .node[data-i="7"], .graph .intro .node[data-i="8"], .graph .intro .node[data-i="9"] { animation-delay: 0.65s; }
+  .graph .intro .node[data-i="10"], .graph .intro .node[data-i="11"] { animation-delay: 1s; }
+  .graph .intro .node[data-i="12"] { animation-delay: 1.3s; }
   .graph .node-working circle { animation: breathe 2.8s ease-in-out 1.6s infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .graph *, .graph-caption { transition: none !important; }
 }
 @keyframes draw { to { stroke-dashoffset: 0; } }
 @keyframes appear { to { opacity: 1; } }
@@ -207,16 +320,9 @@ a:hover { text-decoration-color: currentColor; }
 
 /* ------------------------------------------------------------ sections -- */
 
-main > section:not(.hero) {
-  max-width: var(--width);
-  margin: 0 auto;
-  padding: clamp(64px, 9vw, 128px) var(--gutter) 0;
-}
-main > section:last-of-type { padding-bottom: clamp(64px, 9vw, 128px); }
 section h2 { margin-bottom: 0.8em; }
 section p { color: var(--text-2); max-width: var(--measure); }
 
-.why { border-top: 1px solid var(--rule); margin-top: clamp(56px, 8vw, 112px) !important; }
 .thesis {
   font-family: var(--serif);
   font-optical-sizing: auto;
@@ -227,37 +333,33 @@ section p { color: var(--text-2); max-width: var(--measure); }
   max-width: 28ch !important;
   text-wrap: pretty;
 }
-.why-body { margin-top: 40px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; }
+.why-body { margin-top: 32px; display: grid; gap: 20px; }
 .why-body p { margin: 0; font-size: 1.0625rem; }
 
-.pillars { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 56px; }
-.pillar { padding: 28px 0 32px; border-top: 1px solid var(--rule); }
-.pillar h3 { font-family: var(--serif); font-size: 1.5rem; font-weight: 500; letter-spacing: -0.01em; }
-.pillar p { margin-top: 12px; font-size: 1rem; }
-
-.stations {
-  list-style: none;
-  margin: 8px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0 16px;
-}
-.stations li { position: relative; padding-top: 26px; min-width: 0; }
-.stations li::before { content: ""; position: absolute; left: 0; right: -16px; top: 6px; height: 1px; background: var(--rule-strong); }
-.stations li:last-child::before { right: 0; }
+.stations { list-style: none; margin: 8px 0 0; padding: 0; }
+.stations li { position: relative; padding: 0 0 20px 28px; min-width: 0; }
+.stations li::before { content: ""; position: absolute; left: 6px; top: 0; bottom: 0; width: 1px; background: var(--rule-strong); }
+.stations li:last-child::before { display: none; }
 .stations li::after { content: ""; position: absolute; left: 0; top: 0; width: 13px; height: 13px; border-radius: 50%; background: var(--bg); border: 1.5px solid var(--text); }
 .stations li:last-child::after { background: var(--text); }
+.stations li::after { transition: background 0.4s ease; }
+.stations li.lit::after { background: var(--text); }
 .stations b { display: block; font-size: 1rem; font-weight: 600; }
 .stations span { display: block; font-size: 0.9375rem; color: var(--text-2); line-height: 1.4; margin-top: 4px; }
 .path-note { margin-top: 36px; font-family: var(--serif); font-size: 1.25rem; color: var(--text) !important; max-width: 48ch !important; }
 
-.proof-body { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 48px; }
+.proof-body { display: grid; gap: 20px; }
 .proof-body p { margin: 0; font-size: 1.0625rem; }
 
 /* ------------------------------------------------------------ the form -- */
 
-.access { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 32px 64px; border-top: 1px solid var(--rule); margin-top: clamp(56px, 8vw, 112px) !important; }
+.access {
+  max-width: var(--width);
+  margin: clamp(32px, 6vw, 80px) auto 0;
+  padding: clamp(64px, 9vw, 128px) var(--gutter);
+  display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 32px 64px;
+  border-top: 1px solid var(--rule);
+}
 .access-intro p { font-size: 1.0625rem; }
 .request-form { display: flex; flex-direction: column; gap: 18px; }
 .field { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
@@ -310,17 +412,26 @@ section p { color: var(--text-2); max-width: var(--measure); }
 
 /* --------------------------------------------------------------- narrow -- */
 
+@media (max-width: 900px) {
+  .story { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .scenes { display: contents; }
+  .scene { grid-column: 1; min-height: 0; padding: 48px 0; order: 2; }
+  .scene-hero { order: 0; padding-top: clamp(24px, 5vw, 64px); padding-bottom: 24px; }
+  .graph { grid-column: 1; grid-row: auto; order: 1; top: 0; margin: 0 calc(-1 * var(--gutter)); padding: 12px var(--gutter) 10px; background: var(--bg); z-index: 2; border-bottom: 1px solid var(--rule); }
+  .graph-svg { max-height: 34vh; margin: 0 auto; }
+  .graph-caption { font-size: 0.9375rem; min-height: 2.6em; }
+  .graph.compact figcaption { margin-top: -8vh; }
+  .graph-key { display: none; }
+  .graph .node .title, .graph .node .stage, .graph .machine-kind { display: none; }
+  .graph .node .num { font-size: 15px; }
+  .graph .node circle { r: 11; }
+  .graph .edge { stroke-width: 2; }
+  .graph .record text { font-size: 17px; }
+  .graph .record-title { font-size: 24px; }
+  .graph .note { display: none; }
+}
 @media (max-width: 760px) {
-  .why-body, .pillars, .proof-body, .access, .field-row { grid-template-columns: minmax(0, 1fr); }
-  .pillars { gap: 0; }
-  .stations { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .stations li { padding: 0 0 20px 28px; }
-  .stations li::before { left: 6px; right: auto; top: 0; bottom: 0; width: 1px; height: auto; }
-  .stations li:last-child::before { display: none; }
-  .graph .node text { display: none; }
-  .graph .node circle { r: 13; }
-  .graph .edge { stroke-width: 2.5; }
-  .graph .node-held circle { stroke-dasharray: 5 4; }
+  .access, .field-row { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ---------------------------------------------------------------- docs -- */

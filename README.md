@@ -41,8 +41,12 @@ docker build -t chug.gy .
   here. The `Dockerfile` pins the docs commit; `just run` reads a checkout
   beside this repository.
 - `site/` is embedded into the binary: `index.html`, `requested.html`,
-  `site.css`, `site.js`, the fonts and the favicon. The work graph in the
-  hero is inline SVG in `index.html`.
+  `site.css`, `site.js`, `story.js`, the fonts and the favicon.
+- `story.js` is the drawing beside the page: a cluster of chuggy's own
+  tickets, the machines their jobs run on, and the scenes that change its
+  state as each section is read. The tickets, the machines and the scenes
+  are the tables at the top of the file; `story.play()` in the console runs
+  the scenes on a clock, for a recording.
 
 ## Reading the requests
 

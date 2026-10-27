@@ -12,6 +12,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/site.css?v={{.StylesKey}}">
 <script src="/site.js" defer></script>
+<script src="/story.js" defer></script>
 </head>
 <body>
 
@@ -28,62 +29,19 @@
 
 <main>
 
-<section class="hero">
-  <div class="hero-text">
-    <h1>Engineering, run as a fleet.</h1>
-    <div class="hero-aside">
-      <p class="lead">chuggy is the coordination layer for organizations that build software with AI agents. It holds all of an organization's work in a single graph, lets people and agents carry it forward together, and records every decision made along the way. How work is checked, reviewed and landed is yours to compose.</p>
-      <p class="actions">
-        <a class="button" href="#access">Request access</a>
-        <a class="link-arrowless" href="/docs">Read the docs</a>
-      </p>
-    </div>
-  </div>
-  <figure class="graph">
-    <svg class="graph-svg" viewBox="0 0 1000 360" role="img" aria-labelledby="graph-title graph-desc">
-<title id="graph-title">A project's work graph</title>
-<desc id="graph-desc">Thirteen tickets arranged left to right by what they wait on. Six have landed, three are being worked, one is held by the lead, and the rest wait on the ones before them.</desc>
-<g class="graph-edges">
-<path class="edge edge-done" d="M49,80 C155.0,80 155.0,50 261,50"/>
-<path class="edge edge-done" d="M49,80 C155.0,80 155.0,140 261,140"/>
-<path class="edge edge-done" d="M49,190 C155.0,190 155.0,140 261,140"/>
-<path class="edge edge-done" d="M49,190 C155.0,190 155.0,230 261,230"/>
-<path class="edge edge-done" d="M49,300 C155.0,300 155.0,338 261,338"/>
-<path class="edge edge-done" d="M279,50 C385.0,50 385.0,95 491,95"/>
-<path class="edge" d="M279,140 C385.0,140 385.0,95 491,95"/>
-<path class="edge edge-done" d="M279,230 C385.0,230 385.0,200 491,200"/>
-<path class="edge edge-done" d="M49,300 C270.0,300 270.0,300 491,300"/>
-<path class="edge" d="M509,95 C615.0,95 615.0,150 721,150"/>
-<path class="edge" d="M509,200 C615.0,200 615.0,150 721,150"/>
-<path class="edge" d="M509,200 C615.0,200 615.0,270 721,270"/>
-<path class="edge" d="M509,300 C615.0,300 615.0,270 721,270"/>
-<path class="edge" d="M739,150 C845.0,150 845.0,210 951,210"/>
-<path class="edge" d="M739,270 C845.0,270 845.0,210 951,210"/>
-</g><g class="graph-nodes">
-<g class="node node-landed" transform="translate(40,80)"><circle r="8"/><text x="0" y="26">Accounts</text></g>
-<g class="node node-landed" transform="translate(40,190)"><circle r="8"/><text x="0" y="26">Catalog</text></g>
-<g class="node node-landed" transform="translate(40,300)"><circle r="8"/><text x="0" y="26">Rate limits</text></g>
-<g class="node node-landed" transform="translate(270,50)"><circle r="8"/><text x="0" y="26">Deposits</text></g>
-<g class="node node-working" transform="translate(270,140)"><circle r="8"/><text x="0" y="26">Refunds</text></g>
-<g class="node node-landed" transform="translate(270,230)"><circle r="8"/><text x="0" y="26">Receipts</text></g>
-<g class="node node-waiting" transform="translate(270,338)"><circle r="8"/><text x="0" y="26">Audit export</text></g>
-<g class="node node-held" transform="translate(500,95)"><circle r="8"/><text x="0" y="26">Check-in charge</text></g>
-<g class="node node-working" transform="translate(500,200)"><circle r="8"/><text x="0" y="26">Invoices</text></g>
-<g class="node node-working" transform="translate(500,300)"><circle r="8"/><text x="0" y="26">Admin roles</text></g>
-<g class="node node-waiting" transform="translate(730,150)"><circle r="8"/><text x="0" y="26">Reconciliation</text></g>
-<g class="node node-waiting" transform="translate(730,270)"><circle r="8"/><text x="0" y="26">Reports</text></g>
-<g class="node node-waiting" transform="translate(960,210)"><circle r="8"/><text x="0" y="26">Release 1.4</text></g>
-</g></svg>
-    <figcaption>
-      <span class="key key-landed">Landed</span>
-      <span class="key key-working">In progress</span>
-      <span class="key key-held">Held by the lead</span>
-      <span class="key key-waiting">Waiting</span>
-    </figcaption>
-  </figure>
+<div class="story">
+<div class="scenes">
+
+<section class="scene scene-hero" data-scene="hero">
+  <h1>Engineering, run as a fleet.</h1>
+  <p class="lead">chuggy is the coordination layer for organizations that build software with AI agents. It holds all of an organization's work in a single graph, lets people and agents carry it forward together, and records every decision made along the way. How work is checked, reviewed and landed is yours to compose.</p>
+  <p class="actions">
+    <a class="button" href="#access">Request access</a>
+    <a class="link-arrowless" href="/docs">Read the docs</a>
+  </p>
 </section>
 
-<section class="why" id="why" aria-labelledby="why-h">
+<section class="scene why" id="why" data-scene="why" aria-labelledby="why-h">
   <h2 id="why-h" class="visually-hidden">Why chuggy</h2>
   <p class="thesis">The constraint on software has moved. Writing it is cheap now. Deciding what to write, keeping a hundred efforts coherent, and standing behind the result is not.</p>
   <div class="why-body">
@@ -92,29 +50,28 @@
   </div>
 </section>
 
-<section class="how" id="how" aria-labelledby="how-h">
-  <h2 id="how-h">How it works</h2>
-  <div class="pillars">
-    <div class="pillar">
-      <h3>One graph of the work</h3>
-      <p>Every task is a ticket that says what it waits on. The organization sees the whole; each engineer tends their part. Nothing starts before what it depends on has landed, and nothing is lost in between.</p>
-    </div>
-    <div class="pillar">
-      <h3>A lead on every project</h3>
-      <p>An agent that holds the whole picture rather than one task. It proposes what runs next, holds work that would conflict with work in flight, answers the team's questions, and writes down the reason for every decision.</p>
-    </div>
-    <div class="pillar">
-      <h3>Verification before trust</h3>
-      <p>A worker's word is not evidence. The checks you write run, an independent reviewer judges the change, and a person approves where you require it. Every attempt keeps its transcript, its cost and its verdict.</p>
-    </div>
-    <div class="pillar">
-      <h3>Your fleet, your keys</h3>
-      <p>Work runs on machines you control, from a laptop to a shared pool to the cloud, under your own model accounts. Code and credentials never leave your hands. A project grows by adding machines.</p>
-    </div>
-  </div>
+<section class="scene pillar" id="how" data-scene="graph" aria-labelledby="how-h">
+  <h2 id="how-h" class="how-h">How it works</h2>
+  <h3>One graph of the work</h3>
+  <p>Every task is a ticket that says what it waits on. The organization sees the whole; each engineer tends their part. Nothing starts before what it depends on has landed, and nothing is lost in between.</p>
 </section>
 
-<section class="path" aria-labelledby="path-h">
+<section class="scene pillar" data-scene="lead">
+  <h3>A lead on every project</h3>
+  <p>An agent that holds the whole picture rather than one task. It proposes what runs next, holds work that would conflict with work in flight, answers the team's questions, and writes down the reason for every decision.</p>
+</section>
+
+<section class="scene pillar" data-scene="verify">
+  <h3>Verification before trust</h3>
+  <p>A worker's word is not evidence. The checks you write run, an independent reviewer judges the change, and a person approves where you require it. Every attempt keeps its transcript, its cost and its verdict.</p>
+</section>
+
+<section class="scene pillar" data-scene="fleet">
+  <h3>Your fleet, your keys</h3>
+  <p>Work runs on machines you control, from a laptop to a shared pool to the cloud, under your own model accounts. Code and credentials never leave your hands. A project grows by adding machines.</p>
+</section>
+
+<section class="scene path" data-scene="path" aria-labelledby="path-h">
   <h2 id="path-h">The path every change takes</h2>
   <ol class="stations">
     <li><b>Draft</b><span>Written in chat, or by hand</span></li>
@@ -127,13 +84,32 @@
   <p class="path-note">The same path for a one-line fix and a month of work, for a ticket a person wrote and one an agent did.</p>
 </section>
 
-<section class="proof" aria-labelledby="proof-h">
+<section class="scene proof" data-scene="proof" aria-labelledby="proof-h">
   <h2 id="proof-h">Built on itself</h2>
   <div class="proof-body">
-    <p>chuggy's own development runs on chuggy. Each change to it is a ticket that moved through the graph, passed its checks, and was approved by one of us before it landed. A game studio ships on it.</p>
+    <p>chuggy's own development runs on chuggy. Each change to it is a ticket that moved through the graph, passed its checks, and was approved by one of us before it landed. The graph beside this page is a week of that work. A game studio ships on it.</p>
     <p>The core is a formal model, and the implementation is held to the traces that model produces. The <a href="https://github.com/kasofsk/chuggy">orchestrator</a> is public on GitHub, and the runners for <a href="https://github.com/kasofsk/chuggy-linux">Linux</a>, <a href="https://github.com/kasofsk/chuggy-darwin">macOS</a> and <a href="https://github.com/kasofsk/chuggy-windows">Windows</a> are open source. The <a href="/docs">docs</a> describe how a project is set up and how its jobs run.</p>
   </div>
 </section>
+
+</div>
+
+<figure class="graph">
+  <svg class="graph-svg" viewBox="0 0 1000 540" role="img" aria-labelledby="graph-title graph-desc">
+    <title id="graph-title">A cluster of chuggy's own work graph</title>
+    <desc id="graph-desc">Thirteen tickets for the Linux runner, arranged left to right by what they wait on.</desc>
+  </svg>
+  <figcaption>
+    <p class="graph-caption">chuggy's own graph: the Linux runner on rootless Podman, the week of October 20.</p>
+    <p class="graph-key">
+      <span class="key key-landed">Landed</span>
+      <span class="key key-working">In progress</span>
+      <span class="key key-held">Held by the lead</span>
+      <span class="key key-waiting">Waiting</span>
+    </p>
+  </figcaption>
+</figure>
+</div>
 
 <section class="access" id="access" aria-labelledby="access-h">
   <div class="access-intro">

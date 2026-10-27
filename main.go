@@ -321,6 +321,7 @@ func (s *server) handler() http.Handler {
 	mux.HandleFunc("GET /healthz", s.healthz)
 	mux.HandleFunc("GET /site.css", s.stylesheet)
 	mux.Handle("GET /site.js", cacheFor(5*time.Minute, http.FileServerFS(assets)))
+	mux.Handle("GET /story.js", cacheFor(5*time.Minute, http.FileServerFS(assets)))
 	for from, to := range redirects {
 		mux.Handle("GET "+from, http.RedirectHandler(to, http.StatusFound))
 	}
