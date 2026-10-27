@@ -14,7 +14,7 @@
     { n: 403, title: "Rootless socket path", x: 60, y: 200, waits: [], runner: "kay-thinkpad", mins: 12, cost: 1.31, commit: "3c9d12" },
     { n: 405, title: "Image pull through Podman", x: 60, y: 310, waits: [], runner: "build-a", mins: 18, cost: 2.06, commit: "e02b77" },
     { n: 407, title: "Run a job as uid 1000", x: 280, y: 90, waits: [402, 403], runner: "geoff-mbp", mins: 9, cost: 0.98, commit: "58f1a4" },
-    { n: 409, title: "Drop every capability", x: 280, y: 200, waits: [403, 405], runner: "geoff-mbp", mins: 11, cost: 1.84, commit: "a3f91c" },
+    { n: 409, title: "Start the job's container", x: 280, y: 200, waits: [403, 405], runner: "geoff-mbp", mins: 11, cost: 1.84, commit: "a3f91c" },
     { n: 411, title: "Mount the credential read-only", x: 280, y: 310, waits: [403], runner: "build-a", mins: 14, cost: 1.52, commit: "90be3d" },
     { n: 412, title: "Scrub secrets from the log", x: 500, y: 60, waits: [409, 411], runner: "geoff-mbp", mins: 6, cost: 0.93, commit: "c4d0e8" },
     { n: 414, title: "Save the job's log on exit", x: 500, y: 150, waits: [407, 409], runner: "build-a", mins: 8, cost: 0.88, commit: "1b7f55" },
@@ -44,7 +44,7 @@
       412: { s: "waiting" }, 414: { s: "waiting" }, 415: { s: "working" }, 416: { s: "waiting" },
       418: { s: "absent" }, 419: { s: "waiting" }, 421: { s: "waiting" }
     },
-    caption: "chuggy's own graph: the Linux runner on rootless Podman, the week of October 20."
+    caption: "From chuggy's own work graph: the Linux runner on rootless Podman."
   };
 
   // A scene is what a section of the page sets. `set` applies on entering;
@@ -55,35 +55,35 @@
     { id: "why", set: { zoom: 1, caption: null } },
     {
       id: "graph",
-      set: { zoom: false, t: { 418: { s: "draft" } }, caption: "#418 is drafted in a thread. It waits on #415 and #416, so it is placed by them." },
-      steps: [{ at: 1500, set: { t: { 418: { s: "waiting" } }, caption: "#418, released on a word. Nothing starts before what it waits on has landed." } }]
+      set: { zoom: false, t: { 418: { s: "draft" } }, caption: "#418, drafted in a thread. It waits on #415 and #416." },
+      steps: [{ at: 1500, set: { t: { 418: { s: "waiting" } }, caption: "#418, released. It starts once #415 and #416 have landed." } }]
     },
     {
       id: "lead",
-      set: { t: { 416: { s: "held" } }, note: true, caption: "The lead holds #416, and the reason is written down." }
+      set: { t: { 416: { s: "held" } }, note: true, caption: "The lead holds #416, and says why." }
     },
     {
       id: "verify",
-      set: { note: false, t: { 409: { s: "working", stage: "work · geoff-mbp" } }, caption: "#409 through its work, its checks, an independent review, and a person's yes." },
+      set: { note: false, t: { 409: { s: "working", stage: "work · geoff-mbp" } }, caption: "#409: work, checks, an independent review, approval." },
       steps: [
         { at: 1000, set: { t: { 409: { stage: "checks · go test failed" } } } },
         { at: 2000, set: { t: { 409: { stage: "checks · retried, passed" } } } },
         { at: 2900, set: { t: { 409: { stage: "review · approved" } } } },
         { at: 3700, set: { t: { 409: { stage: "approval · Geoff" } } } },
-        { at: 4500, set: { t: { 409: { s: "landed", stage: "" }, 412: { s: "working" } }, caption: "#409 landed. #412 waited on it, and now it may start." } }
+        { at: 4500, set: { t: { 409: { s: "landed", stage: "" }, 412: { s: "working" } }, caption: "#409 landed. #412 can start." } }
       ]
     },
     {
       id: "fleet",
-      set: { plane: true, t: { 412: { slot: "mbp:0" }, 415: { slot: "kay:0" } }, caption: "Work runs on machines you control, under your own model accounts." },
+      set: { plane: true, t: { 412: { slot: "mbp:0" }, 415: { slot: "kay:0" } }, caption: "Jobs run on your machines: a laptop, the project's pool, the cloud." },
       steps: [
-        { at: 1200, set: { t: { 414: { s: "working", slot: "pool:2" } }, caption: "A laptop is full, so #414 goes to the pool. The pool also runs the lead and the threads." } },
-        { at: 2600, set: { t: { 415: { s: "checking", slot: "" }, 415.1: { slot: "cloud:0", label: "#415 checks" }, 415.2: { slot: "cloud:1", label: "#415 review" } }, caption: "#415's work is done. Its checks and its review are jobs too, and the pool is busy, so they run in the cloud." } }
+        { at: 1200, set: { t: { 414: { s: "working", slot: "pool:2" } }, caption: "The laptop is busy, so #414 takes the pool." } },
+        { at: 2600, set: { t: { 415: { s: "checking", slot: "" }, 415.1: { slot: "cloud:0", label: "#415 checks" }, 415.2: { slot: "cloud:1", label: "#415 review" } }, caption: "#415's checks and review are jobs too. The pool is full, so they run in the cloud." } }
       ]
     },
     {
       id: "path",
-      set: { plane: false, dim: true, record: 1, lit: 1, caption: "One ticket's record. Every ticket keeps one: what ran, where, what it cost, and who said yes." },
+      set: { plane: false, dim: true, record: 1, lit: 1, caption: "#409's record: what ran, where, what it cost, who approved." },
       steps: [
         { at: 600, set: { record: 2, lit: 2 } },
         { at: 1200, set: { record: 3, lit: 3 } },
@@ -98,17 +98,17 @@
       set: {
         dim: false, record: 0, lit: 0,
         t: { 412: { s: "landed", slot: "" }, 414: { s: "landed", slot: "" }, 415: { s: "landed" }, 416: { s: "landed" }, 418: { s: "landed" }, 419: { s: "landed" }, 421: { s: "working" }, 415.1: { slot: "" }, 415.2: { slot: "" } },
-        caption: "Friday. The release is the last ticket in the cluster, and it is running. This graph is ours."
+        caption: "By Friday, the release is running."
       }
     }
   ];
 
   var RECORD = [
-    ["Draft", "Tue 10:02", "written in a thread, from chat"],
+    ["Draft", "Tue 10:02", "in a thread"],
     ["Released", "Tue 10:05", "by Geoff"],
     ["Work", "Tue 10:06", "geoff-mbp · 11 min · $1.84"],
     ["Checks", "Tue 10:18", "go test: one failure, retried, passed"],
-    ["Review", "Tue 10:31", "reviewing agent: approved"],
+    ["Review", "Tue 10:31", "reviewer: approved"],
     ["Approval", "Tue 11:40", "Geoff"],
     ["Landed", "Tue 11:41", "a3f91c on main"]
   ];
@@ -256,8 +256,8 @@
   (function () {
     var working = FIELD.nodes.filter(function (n) { return n.s === "working"; }).length + 2;
     var end = MILESTONES.filter(function (m) { return m.end; })[0];
-    SCENES[1].set.caption = "Pulled back. The strands beside ours: other people, other agents, their work crossing into ours and ours into theirs.";
-    SCENES[1].steps = [{ at: 1800, set: { zoom: 2, caption: "The whole of the project: " + (FIELD.nodes.length + TICKETS.length) + " tickets on " + FIELD.strands + " strands, " + working + " of them in progress, all of it converging on " + end.name + "." } }];
+    SCENES[1].set.caption = "The work around it. Other engineers and their agents, crossing into ours.";
+    SCENES[1].steps = [{ at: 1800, set: { zoom: 2, caption: "chuggy's own work graph: " + (FIELD.nodes.length + TICKETS.length) + " tickets, " + working + " in progress, converging on " + end.name + "." } }];
   })();
 
 
@@ -300,7 +300,7 @@
 
   function record() {
     var out = '<g class="record"><rect class="record-card" x="150" y="30" width="700" height="330" rx="6"/>' +
-      '<text class="record-title" x="180" y="68"><tspan class="mono">#409</tspan> Drop every capability</text>';
+      '<text class="record-title" x="180" y="68"><tspan class="mono">#409</tspan> Start the job’s container</text>';
     RECORD.forEach(function (row, i) {
       var y = 108 + i * 34;
       out += '<g class="record-row" data-row="' + (i + 1) + '"><circle cx="186" cy="' + (y - 5) + '" r="4"/>' +
@@ -324,9 +324,9 @@
     });
     var note = '<g class="note"><rect x="536" y="322" width="330" height="66" rx="4"/>' +
       '<text x="552" y="344" class="note-head">Held by the lead</text>' +
-      '<text x="552" y="364">#416 changes the runner’s config while #415, in flight,</text>' +
-      '<text x="552" y="380">has it open. It runs when #415 lands.</text></g>';
-    return '<svg class="graph-svg intro" viewBox="0 0 1000 540" role="img" aria-labelledby="graph-title graph-desc">' +
+      '<text x="552" y="364">#416 and #415 both change the runner’s config.</text>' +
+      '<text x="552" y="380">#416 runs when #415 lands.</text></g>';
+    return '<svg class="graph-svg intro" viewBox="-48 0 1096 540" role="img" aria-labelledby="graph-title graph-desc">' +
       '<title id="graph-title">A cluster of chuggy’s own work graph</title>' +
       '<desc id="graph-desc">Thirteen tickets for the Linux runner, arranged left to right by what they wait on, and the machines their jobs run on.</desc>' +
       field() + '<g class="cluster"><g class="jobs"></g><g class="graph-edges">' + edges + '</g><g class="graph-nodes">' + nodes + "</g>" + note + "</g>" +
