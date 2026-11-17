@@ -343,11 +343,12 @@ func (s *server) handler() http.Handler {
 }
 
 // Every answer carries the same document policy: the pages load only what the
-// binary serves, run only their own script, and submit only to themselves.
+// binary serves, run only their own script, and submit only to themselves,
+// whether the form posts or the script sends it.
 func securityHeaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		h := w.Header()
-		h.Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'")
+		h.Set("Content-Security-Policy", "default-src 'none'; style-src 'self'; font-src 'self'; img-src 'self'; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'")
 		h.Set("Referrer-Policy", "strict-origin-when-cross-origin")
 		h.Set("X-Content-Type-Options", "nosniff")
 		h.Set("X-Frame-Options", "DENY")
