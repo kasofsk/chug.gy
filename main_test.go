@@ -60,8 +60,13 @@ func TestIndexServesWithPolicy(t *testing.T) {
 	if !strings.Contains(body, "/site.css?v="+stylesKey) {
 		t.Error("the index does not name the stylesheet by its key")
 	}
-	if !strings.Contains(w.Header().Get("Content-Security-Policy"), "default-src 'none'") {
+	policy := w.Header().Get("Content-Security-Policy")
+	if !strings.Contains(policy, "default-src 'none'") {
 		t.Error("no content security policy")
+	}
+	// site.js sends the form with fetch, which default-src 'none' refuses.
+	if !strings.Contains(policy, "connect-src 'self'") {
+		t.Error("the policy refuses the form script's fetch")
 	}
 	if strings.Contains(body, "{{") {
 		t.Error("a template hole was left in the page")
