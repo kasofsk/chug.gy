@@ -25,7 +25,7 @@ Serves on `:8080` with the form writing under `dist/` and the docs read from
 | `CHUG_SITE_DATA` | The directory `requests.jsonl` is kept in. Unset, the form answers 503. |
 | `CHUG_SITE_ADMIN_TOKEN_FILE` | A file holding the bearer token `GET /admin/requests` takes. Unset, the route is 404. |
 | `CHUG_SITE_HOST` | The canonical host. A request for another host is redirected to it, except on loopback and for `/healthz`. |
-| `CHUG_SITE_DOCS` | A checkout of [kasofsk/chuggy-docs](https://github.com/kasofsk/chuggy-docs), rendered at `/docs` with `llms.txt` beside it. Unset, both go to GitHub. The image sets it. |
+| `CHUG_SITE_DOCS` | A checkout of [kasofsk/chuggy-docs](https://github.com/kasofsk/chuggy-docs), rendered at `/docs` with `llms.txt` beside it. Unset, both go to GitHub. On chug.gy the site's Deployment sets it from the docs image. |
 
 ```sh
 go test ./...
@@ -38,8 +38,7 @@ docker build -t chug.gy .
   policy headers and the redirects for short paths such as `/linux`.
 - `docs.go` renders the docs: the README's list is the sidebar, links between
   pages are rewritten to their paths here, and `llms.txt` names the pages
-  here. The `Dockerfile` pins the docs commit; `just run` reads a checkout
-  beside this repository.
+  here. `just run` reads a checkout beside this repository.
 - `site/` is embedded into the binary: `index.html`, `requested.html`,
   `site.css`, `site.js`, the fonts and the favicon. The work graph in the
   hero is inline SVG in `index.html`.

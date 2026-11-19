@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "name": "default",
+  "configuration": {
+    "version": 3,
+    "image": "docker.io/library/golang:1.24-bookworm@sha256:1a6d4452c65dea36aac2e2d606b01b4a029ec90cc1ae53890540ce6173ea77ac",
+    "workloads": {
+      "work": {
+        "runner": "Agent",
+        "prompt": {
+          "path": ".chug/prompts/work.md"
+        },
+        "worker": {
+          "mode": {
+            "type": "SingleAgent",
+            "agent": "Claude",
+            "arguments": []
+          },
+          "setup": [
+            "echo \"GOCACHE=${TMPDIR:-/tmp}/go-build\" >> \"$CHUG_ENV\"",
+            "echo \"GOMODCACHE=${TMPDIR:-/tmp}/go-mod\" >> \"$CHUG_ENV\"",
+            "go mod download"
+          ],
+          "files": []
+        },
+        "authority": {
+          "credentials": [
+            "claude-code"
+          ]
+        }
+      },
+      "checks": {
+        "runner": "Commands",
+        "commands": [
+          "test -z \"$(gofmt -l .)\"",
+          "go vet ./...",
+          "go test ./..."
+        ],
+        "worker": {
+          "setup": [
+            "echo \"GOCACHE=${TMPDIR:-/tmp}/go-build\" >> \"$CHUG_ENV\"",
+            "echo \"GOMODCACHE=${TMPDIR:-/tmp}/go-mod\" >> \"$CHUG_ENV\"",
+            "go mod download"
+          ],
+          "files": []
+        }
+      },
+      "review": {
+        "runner": "Agent",
+        "purpose": "Review",
+        "reevaluate": "OnChange",
+        "prompt": {
+          "path": ".chug/prompts/review.md"
+        },
+        "worker": {
+          "mode": {
+            "type": "SingleAgent",
+            "agent": "Claude",
+            "arguments": []
+          },
+          "setup": [
+            "echo \"GOCACHE=${TMPDIR:-/tmp}/go-build\" >> \"$CHUG_ENV\"",
+            "echo \"GOMODCACHE=${TMPDIR:-/tmp}/go-mod\" >> \"$CHUG_ENV\"",
+            "go mod download"
+          ],
+          "files": []
+        },
+        "authority": {
+          "credentials": [
+            "claude-code"
+          ]
+        }
+      }
+    },
+    "plans": {
+      "standard": [
+        {
+          "name": "checks",
+          "evaluators": [
+            "checks"
+          ]
+        },
+        {
+          "name": "review",
+          "evaluators": [
+            "review"
+          ]
+        }
+      ]
+    },
+    "finalizers": {
+      "stacked": {
+        "finalization": {
+          "kind": "GitMerge",
+          "mode": "PullRequestMerge",
+          "policy": "Stacked"
+        }
+      }
+    },
+    "defaults": {
+      "work": "work",
+      "evaluation": "standard",
+      "finalization": "stacked"
+    }
+  }
+}
