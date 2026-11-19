@@ -1,7 +1,7 @@
 // The docs: kasofsk/chuggy-docs, rendered into this site at /docs.
 //
-// The image carries a checkout of the docs repository at the commit the
-// Dockerfile pins, and CHUG_SITE_DOCS names its directory. At start every page
+// CHUG_SITE_DOCS names a directory holding the docs repository; on chug.gy
+// the Deployment in gdoteof/chuggy-fabric fills it from the docs image. At start every page
 // is rendered once into memory, so serving one is a map lookup. Unset, the
 // site sends /docs and /llms.txt to GitHub instead, as it did before the docs
 // were rendered here.
