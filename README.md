@@ -42,6 +42,25 @@ docker build -t chug.gy .
 - `site/` is embedded into the binary: `index.html`, `requested.html`,
   `site.css`, `site.js`, the fonts and the favicon. The work graph in the
   hero is inline SVG in `index.html`.
+- `tools/workflowrun/` is a small program that dispatches the `chuggy-proof`
+  workflow, waits for the run and exits 0 only if it succeeded. The
+  `workflow-run-work` and `workflow-run` workloads in
+  `.chug/configurations/default.json` run it.
+
+## Starting the proof workflow
+
+`workflowrun` lets a chuggy job show it can start this repository's Actions
+workflows with the short-lived token chuggy hands it. By hand, with a token
+that may start workflows in a file:
+
+```sh
+GH_TOKEN_FILE=/path/to/token go run ./tools/workflowrun -repo kasofsk/chug.gy -outcome success
+```
+
+It reads the file again before every call. Where `CHUG_REF` and `CHUG_COMMIT`
+are set it runs on that branch and fails unless the run tested that commit.
+Exit 0 is a successful run, 1 a failed run or a different commit, 2 anything
+that stopped it finishing.
 
 ## Reading the requests
 
