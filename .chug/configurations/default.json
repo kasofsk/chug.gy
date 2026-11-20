@@ -70,6 +70,44 @@
             "claude-code"
           ]
         }
+      },
+      "workflow-run-work": {
+        "runner": "Commands",
+        "commands": [
+          "go run ./tools/workflowrun --repo kasofsk/chug.gy --outcome success"
+        ],
+        "worker": {
+          "setup": [
+            "echo \"GOCACHE=${TMPDIR:-/tmp}/go-build\" >> \"$CHUG_ENV\"",
+            "echo \"GOMODCACHE=${TMPDIR:-/tmp}/go-mod\" >> \"$CHUG_ENV\"",
+            "go mod download"
+          ],
+          "files": []
+        },
+        "authority": {
+          "credentials": [
+            "chuggy.github-workflow-runs"
+          ]
+        }
+      },
+      "workflow-run": {
+        "runner": "Commands",
+        "commands": [
+          "go run ./tools/workflowrun --repo kasofsk/chug.gy --outcome success"
+        ],
+        "worker": {
+          "setup": [
+            "echo \"GOCACHE=${TMPDIR:-/tmp}/go-build\" >> \"$CHUG_ENV\"",
+            "echo \"GOMODCACHE=${TMPDIR:-/tmp}/go-mod\" >> \"$CHUG_ENV\"",
+            "go mod download"
+          ],
+          "files": []
+        },
+        "authority": {
+          "credentials": [
+            "chuggy.github-workflow-runs"
+          ]
+        }
       }
     },
     "plans": {
@@ -84,6 +122,20 @@
           "name": "review",
           "evaluators": [
             "review"
+          ]
+        }
+      ],
+      "workflow-proof": [
+        {
+          "name": "checks",
+          "evaluators": [
+            "checks"
+          ]
+        },
+        {
+          "name": "workflow-run",
+          "evaluators": [
+            "workflow-run"
           ]
         }
       ]

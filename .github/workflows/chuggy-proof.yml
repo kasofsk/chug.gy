@@ -1,0 +1,38 @@
+name: chuggy-proof
+run-name: chuggy-proof ${{ inputs.request }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      outcome:
+        description: Whether this run should succeed or fail
+        type: choice
+        required: true
+        options:
+          - success
+          - failure
+      request:
+        description: A value that names this run, so the program that started it can find it
+        type: string
+        required: true
+
+permissions: {}
+
+jobs:
+  prove:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Report and conclude
+        env:
+          OUTCOME: ${{ inputs.outcome }}
+          COMMIT: ${{ github.sha }}
+          REF: ${{ github.ref }}
+        run: |
+          echo "commit: $COMMIT"
+          echo "ref: $REF"
+          if [ "$OUTCOME" = success ]; then
+            exit 0
+          fi
+          echo "failing, as asked"
+          exit 1
