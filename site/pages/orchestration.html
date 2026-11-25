@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en" data-page="{{.Name}}"{{if .Preview}} data-preview{{end}}{{if .Test}} data-test="{{.Test}}" data-arm="{{.Arm}}"{{end}}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Chuggy</title>
+<meta name="description" content="Chuggy is orchestration for coding agents. It schedules the work, checks and reviews every change, and merges only what passes.">
+<meta property="og:title" content="Chuggy">
+<meta property="og:description" content="Orchestration for coding agents.">
+<meta property="og:url" content="https://chug.gy/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="{{.Canonical}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{.PageStylesheet}}?v={{.PageStylesKey}}">
+<script src="/site.js" defer></script>
+<script src="/analytics.js" defer></script>
+</head>
+<body>
+<svg class="defs" width="0" height="0" aria-hidden="true"><symbol id="engine" viewBox="0 0 64 28"><g class="e-steam"><path class="e-shade" d="M40 5h6v3h-6zM34 2h6v3h-6zM27 0h5v2h-5z"/><path class="e-mist" d="M40 5h4v1h-4zM34 2h4v1h-4z"/></g><g class="e-body"><path class="e-ink" d="M2 15h14v8H2zM0 21h20v3H0z"/><path class="e-boiler" d="M3 16h12v5H3z"/><path class="e-boiler-light" d="M3 16h12v1H3z"/><path class="e-ink" d="M4 13h3v-1h5v2h3v2H3v-2h1z"/><path class="e-shade" d="M6 13h3v1H6zM11 14h2v1h-2z"/><path class="e-ink" d="M19 8h17v3h-1v6h17v2h5v3h4v2H18V10h1z"/><path class="e-ink" d="M18 7h18v3H18z"/><path class="e-shade" d="M19 7h16v1H19z"/><path class="e-boiler" d="M21 10h12v11H21zM34 15h17v6H34z"/><path class="e-boiler-light" d="M34 14h15v2H34z"/><path class="e-boiler-dark" d="M34 19h17v2H34zM21 20h12v2H21z"/><path class="e-shade" d="M23 11h8v6h-8z"/><path class="e-glass" d="M24 11h6v4h-6z"/><path class="e-boiler-light" d="M24 11h2v2h-2z"/><path class="e-ink" d="M42 9h6v6h-6zM40 8h10v3H40z"/><path class="e-shade" d="M41 8h8v1h-8zM43 11h2v3h-2z"/><path class="e-gold" d="M36 13h4v8h-4z"/><path class="e-gilt" d="M36 13h1v7h-1z"/><path class="e-gold" d="M51 15h3v5h-3z"/><path class="e-gilt" d="M52 15h2v2h-2z"/><path class="e-beam" d="M19 21h36v2H19z"/><path class="e-beam-light" d="M20 21h34v1H20z"/><path class="e-ink" d="M55 20h2v2h2v2h3v1h-8z"/></g><path class="e-ink" d="M3 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M4 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M6 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M10 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M11 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M13 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M22 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M23 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M25 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M33 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M34 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M36 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M44 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M45 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M47 22h1v3h-3v-1h2z"/></g><path class="e-rod" d="M25 24h23v1H25z"/></symbol></svg>
+
+<header class="top wrap">
+  <a class="brand" href="/" aria-label="Chuggy"><svg class="engine" viewBox="0 0 64 28" aria-hidden="true"><use href="#engine"/></svg>Chuggy</a>
+  <nav class="top-nav" aria-label="Site">
+    <a class="nav-sec" data-track="nav-how" href="#route">How it works</a>
+    <a class="nav-sec" data-track="nav-safety" href="#safety">Safety</a>
+    <a class="nav-sec" data-track="nav-configuration" href="#configuration">Configuration</a>
+    <a class="nav-sec" data-track="nav-deployment" href="#deployment">Deployment</a>
+    <a class="nav-sec" data-track="nav-features" href="#features">Features</a>
+    <a class="nav-sec" data-track="nav-docs" href="/docs">Docs</a>
+    <a class="nav-signin" data-track="nav-sign-in" href="/sign-in">Sign in</a>
+    <a class="btn btn-small" data-track="cta-nav-request" href="#access">Request access</a>
+  </nav>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-head">
+      <h1 class="display"><span>Orchestration</span> <span>for coding agents</span></h1>
+      <div class="hero-row">
+        <div>
+          <p class="lead">Unify the effort of all coding agents across your org. Chuggy schedules the work, checks and reviews every change, and merges only what passes.</p>
+          <p class="actions">
+            <a class="btn" data-track="cta-hero-request" href="#access">Request access</a>
+            <a class="link" data-track="cta-hero-docs" href="/docs">Read the docs</a>
+          </p>
+        </div>
+        <dl class="spec">
+          <div><dt>Agents</dt><dd>Claude Code, Codex</dd></div>
+          <div><dt>Runs on</dt><dd>Linux, macOS, Windows</dd></div>
+          <div><dt>Model access</dt><dd>Subscription, API key, Bedrock, Vertex AI, Foundry</dd></div>
+          <div><dt>Merges by</dt><dd>Push, pull request, built-in merge queue</dd></div>
+        </dl>
+      </div>
+    </div>
+    <figure class="shot">
+      <div class="shot-frame shot-fade shot-crop">
+        <img src="/img/orchestration-graph.webp" width="2686" height="1700" alt="The Chuggy console showing an epic as a graph: eleven tickets laid out in dependency order, ten done and one running.">
+      </div>
+      <figcaption>Eleven tickets from Chuggy's own project, run in dependency order.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band band-alt" id="route" aria-labelledby="route-h">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="display" id="route-h">Build confidently with adversarial review.</h2>
+      <p>Chuggy's formal specification and battle testing ensure unattended software development is safe, stable and correct.</p>
+    </div>
+    <div class="route">
+      <svg class="engine train" viewBox="0 0 64 28" aria-hidden="true"><g class="e-steam"><path class="e-shade" d="M40 5h6v3h-6zM34 2h6v3h-6zM27 0h5v2h-5z"/><path class="e-mist" d="M40 5h4v1h-4zM34 2h4v1h-4z"/></g><g class="e-body"><path class="e-ink" d="M2 15h14v8H2zM0 21h20v3H0z"/><path class="e-boiler" d="M3 16h12v5H3z"/><path class="e-boiler-light" d="M3 16h12v1H3z"/><path class="e-ink" d="M4 13h3v-1h5v2h3v2H3v-2h1z"/><path class="e-shade" d="M6 13h3v1H6zM11 14h2v1h-2z"/><path class="e-ink" d="M19 8h17v3h-1v6h17v2h5v3h4v2H18V10h1z"/><path class="e-ink" d="M18 7h18v3H18z"/><path class="e-shade" d="M19 7h16v1H19z"/><path class="e-boiler" d="M21 10h12v11H21zM34 15h17v6H34z"/><path class="e-boiler-light" d="M34 14h15v2H34z"/><path class="e-boiler-dark" d="M34 19h17v2H34zM21 20h12v2H21z"/><path class="e-shade" d="M23 11h8v6h-8z"/><path class="e-glass" d="M24 11h6v4h-6z"/><path class="e-boiler-light" d="M24 11h2v2h-2z"/><path class="e-ink" d="M42 9h6v6h-6zM40 8h10v3H40z"/><path class="e-shade" d="M41 8h8v1h-8zM43 11h2v3h-2z"/><path class="e-gold" d="M36 13h4v8h-4z"/><path class="e-gilt" d="M36 13h1v7h-1z"/><path class="e-gold" d="M51 15h3v5h-3z"/><path class="e-gilt" d="M52 15h2v2h-2z"/><path class="e-beam" d="M19 21h36v2H19z"/><path class="e-beam-light" d="M20 21h34v1H20z"/><path class="e-ink" d="M55 20h2v2h2v2h3v1h-8z"/></g><path class="e-ink" d="M3 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M4 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M6 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M10 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M11 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M13 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M22 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M23 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M25 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M33 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M34 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M36 22h1v3h-3v-1h2z"/></g><path class="e-ink" d="M44 22h6v1h1v3h-1v1h-6v-1h-1v-3h1z"/><path class="e-shade" d="M45 23h4v3h-4z"/><g class="e-wheel"><path class="e-gold" d="M47 22h1v3h-3v-1h2z"/></g><path class="e-rod" d="M25 24h23v1H25z"/></svg>
+      <ol>
+        <li class="stop"><span class="stop-n">1</span><h3>Draft</h3><p>Write the brief yourself, or talk it through with an agent that drafts it for you.</p></li>
+        <li class="stop"><span class="stop-n">2</span><h3>Release</h3><p>Release the ticket when the brief is ready. It starts once the tickets it depends on are done and you give the go-ahead.</p></li>
+        <li class="stop"><span class="stop-n">3</span><h3>Work</h3><p>An agent makes the change on a separate branch, in a fresh container.</p></li>
+        <li class="stop"><span class="stop-n">4</span><h3>Evaluation</h3><p>Your checks run, a reviewing agent reads the diff and, where you ask, a person approves. You set the order.</p></li>
+        <li class="stop"><span class="stop-n">5</span><h3>Landing</h3><p>The change merges by push, by pull request or through the built-in merge queue.</p></li>
+      </ol>
+      <p class="rework"><span>A failed check or review sends the work back with the findings. After a set number of cycles, the ticket stops and asks a person.</span></p>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="safety" aria-labelledby="safety-h">
+  <div class="wrap">
+    <div class="head head-wide">
+      <h2 class="display statement" id="safety-h">No agent approves its own work.</h2>
+      <p>The agent that writes a change never approves it. A reviewing agent reads every diff against your written standards. Where you want a person, the ticket waits for one.</p>
+    </div>
+    <figure class="shot">
+      <div class="shot-frame shot-fade shot-crop shot-tight">
+        <img src="/img/orchestration-runs.webp" width="2686" height="1558" alt="A ticket's run history in the Chuggy console. Cycles two and three were sent back by review with findings. Cycle four passed its checks, was approved by the reviewing agent and merged.">
+      </div>
+      <figcaption>A ticket from Chuggy's own project. Review sent the change back with findings. It passed and merged on the fourth cycle.</figcaption>
+    </figure>
+    <ul class="guards">
+      <li><h3>Staged evaluation</h3><p>Evaluation runs in stages. A stage is a command, a reviewing agent or a named approver. A failed stage sends the work back.</p></li>
+      <li><h3>Sandboxed jobs</h3><p>Container jobs start fresh and run as an unprivileged user, with every Linux capability dropped.</p></li>
+      <li><h3>Credentials stay with you</h3><p>Model keys stay on the machine that runs the work. They are mounted read-only, scrubbed from logs and never sent to Chuggy.</p></li>
+      <li><h3>Hard stops</h3><p>Tickets stop at the rework limit. Accounts pause at the usage limit you set.</p></li>
+      <li><h3>A complete record</h3><p>Every prompt, command, diff, review and approval is kept. You can see what an agent did, who signed off and when.</p></li>
+      <li><h3>A formally specified core</h3><p>The core that moves a ticket from stage to stage has a formal specification, and the implementation is tested against it.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band band-alt" id="configuration" aria-labelledby="configuration-h">
+  <div class="wrap">
+    <div class="config">
+      <div>
+        <h2 class="display" id="configuration-h">Your process is a file in your repository.</h2>
+        <p class="config-intro">A project's rules are plain files in its repository. A change to the process is a pull request, like any other change.</p>
+        <dl class="knobs">
+          <div><dt>Agent</dt><dd>Claude Code or Codex, with the model set per job.</dd></div>
+          <div><dt>Environment</dt><dd>Your own container image, or the machine itself for work that needs Xcode, a GPU or a device.</dd></div>
+          <div><dt>Checks</dt><dd>Any command your repository can run.</dd></div>
+          <div><dt>Review</dt><dd>One reviewing agent or several, each with its own instructions.</dd></div>
+          <div><dt>Approval</dt><dd>Nobody, any developer, an admin or named people.</dd></div>
+          <div><dt>Landing</dt><dd>Push, a pull request, or a pull request that Chuggy merges, in series or stacked.</dd></div>
+          <div><dt>Limits</dt><dd>CPU and memory per job, usage per account.</dd></div>
+        </dl>
+      </div>
+      <div class="code">
+        <div class="code-bar"><span>.chug/configurations/standard.json</span><span>abridged</span></div>
+        <pre><code>{
+  <span class="k">"image"</span>: <span class="s">"ghcr.io/acme/web-dev:2.4"</span>,
+  <span class="k">"workloads"</span>: {
+    <span class="k">"build"</span>: {
+      <span class="k">"runner"</span>: <span class="s">"Agent"</span>,
+      <span class="k">"prompt"</span>: { <span class="k">"path"</span>: <span class="s">".chug/prompts/work.md"</span> },
+      <span class="k">"worker"</span>: {
+        <span class="k">"mode"</span>: {
+          <span class="k">"type"</span>: <span class="s">"SingleAgent"</span>,
+          <span class="k">"agent"</span>: <span class="s">"Claude"</span>,
+          <span class="k">"arguments"</span>: [<span class="s">"--model=opus"</span>]
+        },
+        <span class="k">"setup"</span>: [<span class="s">"npm ci"</span>]
+      },
+      <span class="k">"resources"</span>: { <span class="k">"cpus"</span>: <span class="n">6</span>, <span class="k">"memoryMib"</span>: <span class="n">4096</span> }
+    },
+    <span class="k">"ci"</span>: { <span class="k">"runner"</span>: <span class="s">"Commands"</span>, <span class="k">"commands"</span>: [<span class="s">"npm test"</span>] },
+    <span class="k">"review"</span>: {
+      <span class="k">"runner"</span>: <span class="s">"Agent"</span>,
+      <span class="k">"purpose"</span>: <span class="s">"Review"</span>,
+      <span class="k">"prompt"</span>: { <span class="k">"path"</span>: <span class="s">".chug/prompts/review.md"</span> }
+    },
+    <span class="k">"approval"</span>: { <span class="k">"runner"</span>: <span class="s">"Approval"</span> }
+  },
+  <span class="k">"plans"</span>: {
+    <span class="k">"approved"</span>: [
+      { <span class="k">"name"</span>: <span class="s">"checks"</span>, <span class="k">"evaluators"</span>: [<span class="s">"ci"</span>] },
+      { <span class="k">"name"</span>: <span class="s">"review"</span>, <span class="k">"evaluators"</span>: [<span class="s">"review"</span>] },
+      { <span class="k">"name"</span>: <span class="s">"approval"</span>, <span class="k">"evaluators"</span>: [<span class="s">"approval"</span>] }
+    ]
+  },
+  <span class="k">"finalizers"</span>: {
+    <span class="k">"merge"</span>: { <span class="k">"finalization"</span>: {
+      <span class="k">"kind"</span>: <span class="s">"GitMerge"</span>, <span class="k">"mode"</span>: <span class="s">"PullRequestMerge"</span>, <span class="k">"policy"</span>: <span class="s">"Stacked"</span>
+    } }
+  },
+  <span class="k">"defaults"</span>: {
+    <span class="k">"work"</span>: <span class="s">"build"</span>, <span class="k">"evaluation"</span>: <span class="s">"approved"</span>, <span class="k">"finalization"</span>: <span class="s">"merge"</span>
+  }
+}</code></pre>
+      </div>
+    </div>
+    <figure class="shot">
+      <div class="shot-frame shot-crop shot-tight">
+        <img src="/img/orchestration-configuration.webp" width="2602" height="952" alt="A ticket's Configuration tab in the Chuggy console: the pinned configuration, with an agent for the work, a command and a reviewing agent for evaluation, and a pull request that merges into the default branch.">
+      </div>
+      <figcaption>Each ticket keeps the configuration it was released with.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="band" id="deployment" aria-labelledby="deployment-h">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="display" id="deployment-h">Runs where your code is allowed to run.</h2>
+      <p>Chuggy coordinates the work. Your hardware runs it, on model accounts you hold. Start on one laptop, or keep every component inside your network.</p>
+    </div>
+    <div class="paths">
+      <article class="path">
+        <header><h3>Solo</h3><p class="path-for">Your own machine</p></header>
+        <p class="path-pitch">Start on the computer you already have.</p>
+        <dl>
+          <div><dt>Agents run on</dt><dd>Your laptop or workstation, on Linux, macOS or Windows.</dd></div>
+          <div><dt>Model access</dt><dd>Your Claude or Codex subscription, or an API key.</dd></div>
+          <div><dt>Chuggy service</dt><dd>Hosted by us.</dd></div>
+          <div><dt>Included</dt><dd>One-line setup, pasted into Claude Code.</dd></div>
+        </dl>
+      </article>
+      <article class="path">
+        <header><h3>Team</h3><p class="path-for">Every engineer's machine</p></header>
+        <p class="path-pitch">Each engineer runs their tickets on their machine. The team shares one view of the work.</p>
+        <dl>
+          <div><dt>Agents run on</dt><dd>Each engineer's machine.</dd></div>
+          <div><dt>Model access</dt><dd>Each engineer's subscription or key.</dd></div>
+          <div><dt>Chuggy service</dt><dd>Hosted by us.</dd></div>
+          <div><dt>Included</dt><dd>Roles, approvals, a shared inbox and usage dashboards.</dd></div>
+        </dl>
+      </article>
+      <article class="path">
+        <header><h3>Enterprise</h3><p class="path-for">Your infrastructure</p></header>
+        <p class="path-pitch">Run every component inside your network, with the model provider your contracts already cover.</p>
+        <dl>
+          <div><dt>Agents run on</dt><dd>Your Kubernetes cluster, or each engineer's machine.</dd></div>
+          <div><dt>Model access</dt><dd>Amazon Bedrock, Google Vertex AI, Microsoft Foundry or the Anthropic API.</dd></div>
+          <div><dt>Chuggy service</dt><dd>Self-hosted in your network, or hosted by us.</dd></div>
+          <div><dt>Included</dt><dd>SSO with SAML and OIDC, audit log export and direct support.</dd></div>
+        </dl>
+      </article>
+    </div>
+    <p class="custom"><strong>For any other arrangement,</strong> tell us what you have and we'll scope it with you. <a class="link" data-track="cta-custom-request" href="#access">Request access</a></p>
+  </div>
+</section>
+
+<section class="band band-alt" id="context" aria-labelledby="context-h">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="display" id="context-h">A run shows what filled its context window.</h2>
+      <p>Chuggy records the context of every agent run. Open one to see how full the model's window was, what filled it and how it grew with each call.</p>
+    </div>
+    <figure class="shot">
+      <div class="shot-frame shot-crop shot-tight shot-skip">
+        <img src="/img/orchestration-context.webp" width="2590" height="1730" alt="A run's Context tab in the Chuggy console. The window holds 144,994 of 250,000 tokens, broken down by system prompt, tools, memory files, skills and messages. Below it, a chart of the context growing over 60 calls, under the line where it would compact.">
+      </div>
+      <figcaption>A run from Chuggy's own project. It made 60 calls and finished with 57% of its window in use.</figcaption>
+    </figure>
+    <ul class="guards guards-4">
+      <li><h3>Window</h3><p>How much of the window is in use, split by system prompt, tools, memory files, skills and messages.</p></li>
+      <li><h3>Growth</h3><p>The size of the context at every call, with compactions and subagent calls marked.</p></li>
+      <li><h3>Inputs</h3><p>The brief, instructions, settings, tools and skills the agent was given before its first call.</p></li>
+      <li><h3>Heaviest</h3><p>The tools that used the most context and the five largest results, linked to their place in the transcript.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band paper" id="features" aria-labelledby="features-h">
+  <div class="wrap">
+    <h2 class="display" id="features-h">Features</h2>
+
+    <div class="group">
+      <h3>Orchestration</h3>
+      <ul>
+        <li><strong>Dependency graphs</strong><span>Tickets declare what they wait on, and Chuggy works out the order.</span></li>
+        <li><strong>Epics</strong><span>Group related tickets under one goal and follow one progress bar.</span></li>
+        <li><strong>Parallel execution</strong><span>Independent tickets run at the same time, each in its own workspace.</span></li>
+        <li><strong>Automatic rework</strong><span>Failed work returns to the agent with the findings, up to a set number of cycles.</span></li>
+        <li><strong>Stacked landings</strong><span>Each change is checked on top of the ones queued ahead of it, and the stack merges in order.</span></li>
+        <li><strong>Conflict handling</strong><span>When the target branch moves, the change is merged with it and checked again. The agent resolves any conflict.</span></li>
+      </ul>
+    </div>
+
+    <div class="group">
+      <h3>Review and control</h3>
+      <ul>
+        <li><strong>Staged evaluation</strong><span>Checks, agent review and approval, in any order.</span></li>
+        <li><strong>Agent code review</strong><span>A reviewing agent reads every diff against your written standards.</span></li>
+        <li><strong>Human approval</strong><span>Require a developer, an admin or a named person to sign off before a change merges. An agent cannot give that approval.</span></li>
+        <li><strong>Inbox</strong><span>Tickets that need a person arrive in one place, with the reason.</span></li>
+        <li><strong>Usage limits</strong><span>Set a percentage of your plan's usage window. The account pauses when it's reached.</span></li>
+        <li><strong>Revoke</strong><span>Stop a ticket at any point before it merges. Its record stays.</span></li>
+      </ul>
+    </div>
+
+    <div class="group">
+      <h3>Run records</h3>
+      <ul>
+        <li><strong>Context viewer</strong><span>See what filled a run's context window and how it grew, call by call.</span></li>
+        <li><strong>Transcripts</strong><span>Read a run's transcript, with its tool calls and their results.</span></li>
+        <li><strong>Cost per run</strong><span>See how long each run took, the tokens it used and their cost at list price.</span></li>
+      </ul>
+    </div>
+
+    <div class="group">
+      <h3>Runtime</h3>
+      <ul>
+        <li><strong>Your images</strong><span>Jobs run in the container image your project names.</span></li>
+        <li><strong>Host jobs</strong><span>Work that needs Xcode, a GPU or a device runs directly on a machine that has it.</span></li>
+        <li><strong>Claude Code and Codex</strong><span>Choose the agent and model for each kind of job.</span></li>
+        <li><strong>Any model account</strong><span>Subscription, API key, Amazon Bedrock, Google Vertex AI or Microsoft Foundry.</span></li>
+        <li><strong>Open-source runners</strong><span>The runner is the program that does the work on your machine. It is open source for Linux, macOS and Windows.</span></li>
+        <li><strong>Build caches and Docker</strong><span>On Linux runners, jobs can build and run containers and reuse caches between runs.</span></li>
+      </ul>
+    </div>
+
+    <div class="group">
+      <h3>Team and administration</h3>
+      <ul>
+        <li><strong>Roles and permissions</strong><span>Decide who can file tickets, start work, approve and administer in each project.</span></li>
+        <li><strong>Single sign-on</strong><span>SAML and OIDC with your identity provider.</span></li>
+        <li><strong>Audit log</strong><span>Every action and who took it, ready to export.</span></li>
+        <li><strong>Usage dashboards</strong><span>Estimated spend, run time and throughput, by project, model and member.</span></li>
+        <li><strong>Multi-repository projects</strong><span>One project can span several repositories.</span></li>
+        <li><strong>Self-hosting</strong><span>Run all of Chuggy inside your network.</span></li>
+      </ul>
+    </div>
+
+    <div class="group">
+      <h3>Integrations</h3>
+      <ul>
+        <li><strong>GitHub</strong><span>Opens and merges pull requests under your existing branch rules.</span></li>
+        <li><strong>MCP tools</strong><span>File, release and inspect tickets from Claude Code.</span></li>
+        <li><strong>API and access tokens</strong><span>Script a project with a token that acts as you.</span></li>
+        <li><strong>Threads</strong><span>Talk a piece of work through with an agent that drafts and releases the tickets.</span></li>
+        <li><strong>Images in briefs</strong><span>Attach screenshots and mock-ups to a ticket.</span></li>
+        <li><strong>Docs for agents</strong><span>An llms.txt index and a Claude Code plugin, so your agent can set Chuggy up.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="proof" aria-labelledby="proof-h">
+  <div class="wrap">
+    <div class="head">
+      <h2 class="display" id="proof-h">Chuggy builds Chuggy.</h2>
+      <p>Changes to Chuggy are tickets that go through Chuggy, the same way yours would.</p>
+    </div>
+    <dl class="figures">
+      <div><dt>tickets landed in a single week</dt><dd>377</dd></div>
+      <div><dt>times review sent work back that week, before it could merge</dt><dd>168</dd></div>
+      <div><dt>median time that week from releasing a ticket to landing it</dt><dd>3.4<small>hours</small></dd></div>
+    </dl>
+    <p class="fine">All three figures are from Chuggy's own project, for the seven days ending 17 November 2026.</p>
+    <p class="sources">The core's <a class="link" data-track="out-formal-model" href="https://github.com/kasofsk/chug-ticket-domain">formal model</a> is written in <a class="link" data-track="out-quint" href="https://quint.sh/">Quint</a>, a specification language. The <a class="link" data-track="out-chuggy" href="https://github.com/kasofsk/chuggy">service's source</a> is public on GitHub. The runners for <a class="link" data-track="out-linux" href="https://github.com/kasofsk/chuggy-linux">Linux</a>, <a class="link" data-track="out-macos" href="https://github.com/kasofsk/chuggy-darwin">macOS</a> and <a class="link" data-track="out-windows" href="https://github.com/kasofsk/chuggy-windows">Windows</a> are open source.</p>
+  </div>
+</section>
+
+<section class="band band-alt" id="access" aria-labelledby="access-h">
+  <div class="wrap access">
+    <div class="access-intro">
+      <h2 class="display" id="access-h">See it on your repository.</h2>
+      <p>Chuggy is open by invitation. Tell us who you are and what you want to run.</p>
+    </div>
+    <form class="form request-form" method="post" action="/request-access" novalidate>
+      <input type="hidden" name="page" value="{{.Name}}">
+      <input type="hidden" name="test" value="{{.Test}}">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required maxlength="254">
+      </div>
+      <div class="form-row">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" autocomplete="name" maxlength="200">
+        </div>
+        <div class="field">
+          <label for="github">GitHub username</label>
+          <input id="github" name="github" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40">
+        </div>
+      </div>
+      <fieldset class="field">
+        <legend>I am</legend>
+        <div class="choices">
+          <label><input type="radio" id="interest-use" name="interest" value="use" checked> a founder or solo developer</label>
+          <label><input type="radio" id="interest-partner" name="interest" value="partner"> part of a company that wants to run Chuggy</label>
+          <label><input type="radio" id="interest-invest" name="interest" value="invest"> an investor</label>
+          <label><input type="radio" id="interest-other" name="interest" value="other"> something else</label>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="about">What do you want to run?</label>
+        <textarea id="about" name="about" rows="4" maxlength="2000"></textarea>
+      </div>
+      <div class="field-hp" aria-hidden="true">
+        <label for="website">Website</label>
+        <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+      </div>
+      <p class="form-actions">
+        <button class="btn" type="submit">Request access</button>
+        <span class="form-status" role="status" aria-live="polite"></span>
+      </p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <a class="brand" href="/" aria-label="Chuggy"><svg class="engine" viewBox="0 0 64 28" aria-hidden="true"><use href="#engine"/></svg>Chuggy</a>
+    <p class="foot-links">
+      <a data-track="foot-docs" href="/docs">Docs</a>
+      <a data-track="out-github" href="https://github.com/kasofsk">GitHub</a>
+      <a data-track="foot-llms" href="/llms.txt">llms.txt</a>
+      <a data-track="foot-sign-in" href="/sign-in">Sign in</a>
+    </p>
+  </div>
+</footer>
+</body>
+</html>

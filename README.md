@@ -69,8 +69,11 @@ docker build -t chug.gy .
   here. `just run` reads a checkout beside this repository.
 - `site/` is embedded into the binary: `pages/` (one template per page, such
   as `home.html`), `partials/` (the request form and the footer), `requested.html`,
-  `docs.html`, `admin/` (the dashboard's templates) with `admin.css`, `site.css`, `site.js`, `analytics.js` (the page events), the fonts and the favicon. The work
+  `docs.html`, `admin/` (the dashboard's templates) with `admin.css`, `site.css`, `site.js`, `analytics.js` (the page events), the fonts, `img/` (the pages' images, served at `/img/`) and the favicon. The work
   graph in the hero is inline SVG in `pages/home.html`.
+  `pages/orchestration.html` loads `orchestration.css` and no other stylesheet;
+  its screenshots are `img/orchestration-*.webp`, and its font is Archivo
+  (`fonts/archivo-latin.woff2`, under the SIL Open Font License).
 
 - `.github/workflows/chuggy-proof.yml` is a workflow started only by hand
   (`workflow_dispatch`); it prints its commit and ref, then succeeds or fails
@@ -91,7 +94,10 @@ page gets `.Name`, `.Canonical`, `.Test`, `.Arm`, `.StylesKey`, `.PageStylesheet
 and `.PageStylesKey`. Put `data-page="{{.Name}}"` and the `data-test`/`data-arm`
 attributes on `<html>` as `home.html` does, and `data-preview` when `.Preview`
 is set: the dashboard's preview at `/admin/pages/<name>` renders a page that
-way, with no test and no cookie.
+way, with no test and no cookie. The policy header allows a page only what
+this site serves: no style or script written into the page, and no font, image
+or script from another site. A page's images go in `site/img/`; a browser may
+keep one for a day, so a changed image takes a new name.
 
 **Declare a test.** Add a `testDef` to `testDefs` in `pages.go`: an ID, the
 route, and arms (a registered page and a positive weight each; the first is the
@@ -101,6 +107,9 @@ starting.
 
 **Changing a test's arms means giving it a new ID**, so results from different
 arms never mix.
+
+The test `home-redesign` runs on `/`: half the visitors get `home`, the
+baseline, and half get `orchestration`.
 
 A test sets the cookie `chug_test_<id>` (90 days, `HttpOnly`), which holds only
 the arm's page name. The form records `page`, `test` and `arm` in each request's

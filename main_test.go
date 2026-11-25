@@ -59,9 +59,6 @@ func TestIndexServesWithPolicy(t *testing.T) {
 		t.Fatalf("index answered %d", w.Code)
 	}
 	body := w.Body.String()
-	if !strings.Contains(body, "/site.css?v="+stylesKey) {
-		t.Error("the index does not name the stylesheet by its key")
-	}
 	policy := w.Header().Get("Content-Security-Policy")
 	if !strings.Contains(policy, "default-src 'none'") {
 		t.Error("no content security policy")

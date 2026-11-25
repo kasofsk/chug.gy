@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 	"testing/fstest"
@@ -206,10 +207,10 @@ func TestUnknownURLIs404(t *testing.T) {
 }
 
 func TestHomeWithoutTest(t *testing.T) {
-	_, h, _ := testServer(t, false)
+	h, _ := testWithTests(t, pageDefs, nil)
 	w := visit(h, "/")
 	body := w.Body.String()
-	for _, want := range []string{`data-page="home"`, `<link rel="canonical" href="https://chug.gy/">`, `name="page" value="home"`, `name="test" value=""`} {
+	for _, want := range []string{`data-page="home"`, `<link rel="canonical" href="https://chug.gy/">`, `name="page" value="home"`, `name="test" value=""`, "/site.css?v=" + stylesKey} {
 		if !strings.Contains(body, want) {
 			t.Errorf("missing %s", want)
 		}
@@ -219,6 +220,120 @@ func TestHomeWithoutTest(t *testing.T) {
 	}
 	if w.Header().Get("Cache-Control") != "public, max-age=300" || len(w.Result().Cookies()) != 0 {
 		t.Fatal("home's caching or cookies changed")
+	}
+}
+
+var (
+	scriptTag = regexp.MustCompile(`<script[^>]*>`)
+	linkTag   = regexp.MustCompile(`<link[^>]*>`)
+	srcValue  = regexp.MustCompile(`\ssrc="([^"]*)"`)
+	hrefValue = regexp.MustCompile(`\shref="([^"]*)"`)
+	cssURL    = regexp.MustCompile(`url\(([^)]*)\)`)
+)
+
+func onThisSite(target string) bool {
+	return strings.HasPrefix(target, "/") && !strings.HasPrefix(target, "//")
+}
+
+// What the policy the server sends drops from a page without a word: a style
+// or script written into it, and anything loaded from another site. It
+// answers the faults and the paths on this site that the page loads.
+func policyFaults(body string) (faults, loads []string) {
+	if strings.Contains(body, "<style") {
+		faults = append(faults, "a style element")
+	}
+	if strings.Contains(body, ` style="`) {
+		faults = append(faults, "a style attribute")
+	}
+	for _, tag := range scriptTag.FindAllString(body, -1) {
+		if !srcValue.MatchString(tag) {
+			faults = append(faults, "a script written into the page")
+		}
+	}
+	for _, m := range srcValue.FindAllStringSubmatch(body, -1) {
+		if !onThisSite(m[1]) {
+			faults = append(faults, "loads "+m[1])
+			continue
+		}
+		loads = append(loads, m[1])
+	}
+	for _, tag := range linkTag.FindAllString(body, -1) {
+		if strings.Contains(tag, `rel="canonical"`) {
+			continue
+		}
+		href := hrefValue.FindStringSubmatch(tag)
+		if href == nil || !onThisSite(href[1]) {
+			faults = append(faults, "loads "+tag)
+			continue
+		}
+		loads = append(loads, href[1])
+	}
+	return faults, loads
+}
+
+// Each arm of each declared test, as a visitor holding its cookie gets it:
+// the page says which test and arm it is, carries the form that records them,
+// keeps to the policy, and everything it loads is served.
+func TestDeclaredArmsRender(t *testing.T) {
+	_, h, _ := testServer(t, false)
+	reg := mustRegistry(t, pageDefs)
+	if len(testDefs) == 0 {
+		t.Skip("no test is declared")
+	}
+	for _, td := range testDefs {
+		for _, a := range td.Arms {
+			w := visit(h, td.Route, &http.Cookie{Name: cookieName(td.ID), Value: a.Page})
+			if w.Code != 200 || len(w.Result().Cookies()) != 0 {
+				t.Fatalf("%s/%s answered %d with cookies %v", td.ID, a.Page, w.Code, w.Result().Cookies())
+			}
+			body := w.Body.String()
+			sheet := "/site.css?v=" + stylesKey
+			if p := reg.pages[a.Page]; p.def.Stylesheet != "" {
+				sheet = "/" + p.def.Stylesheet + "?v=" + p.key
+			}
+			for _, want := range []string{
+				`data-page="` + a.Page + `"`,
+				`data-test="` + td.ID + `" data-arm="` + a.Page + `"`,
+				`<link rel="canonical" href="https://chug.gy` + td.Route + `">`,
+				`<link rel="stylesheet" href="` + sheet + `">`,
+				`src="/site.js"`, `src="/analytics.js"`,
+				`request-form" method="post" action="/request-access"`,
+				`name="page" value="` + a.Page + `"`,
+				`name="test" value="` + td.ID + `"`,
+				`name="email"`, `name="interest" value="use"`, `name="website"`,
+			} {
+				if !strings.Contains(body, want) {
+					t.Errorf("%s/%s: missing %s", td.ID, a.Page, want)
+				}
+			}
+			if strings.Contains(body, "{{") {
+				t.Errorf("%s/%s: a template hole was left in the page", td.ID, a.Page)
+			}
+			faults, loads := policyFaults(body)
+			for _, f := range faults {
+				t.Errorf("%s/%s: the policy would drop %s", td.ID, a.Page, f)
+			}
+			for _, target := range loads {
+				got := visit(h, target)
+				if got.Code != 200 {
+					t.Errorf("%s/%s loads %s, which answered %d", td.ID, a.Page, target, got.Code)
+					continue
+				}
+				if strings.HasPrefix(target, "/img/") && got.Header().Get("Content-Type") != "image/webp" {
+					t.Errorf("%s is served as %q", target, got.Header().Get("Content-Type"))
+				}
+				if !strings.Contains(target, ".css") {
+					continue
+				}
+				for _, m := range cssURL.FindAllStringSubmatch(got.Body.String(), -1) {
+					if !onThisSite(m[1]) {
+						t.Errorf("%s: the policy would drop %s", target, m[0])
+					} else if got := visit(h, m[1]); got.Code != 200 {
+						t.Errorf("%s loads %s, which answered %d", target, m[1], got.Code)
+					}
+				}
+			}
+		}
 	}
 }
 
