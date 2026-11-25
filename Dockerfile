@@ -5,7 +5,7 @@
 # holding kasofsk/chuggy-docs (on chug.gy, the Deployment in gdoteof/chuggy-fabric
 # fills it from the docs image); unset, /docs and /llms.txt go to GitHub.
 
-FROM golang:1.24-bookworm@sha256:1a6d4452c65dea36aac2e2d606b01b4a029ec90cc1ae53890540ce6173ea77ac AS build
+FROM golang:1.27-bookworm@sha256:ce59b41415e2524ae99926fe1f37ce48ba8c194dcbd2a56a65436cdcefa2bd34 AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
