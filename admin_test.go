@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -812,6 +813,36 @@ func TestChartSVGKeepsTextSize(t *testing.T) {
 		if !strings.Contains(svg, want) {
 			t.Errorf("chart lacks %q: %s", want, svg)
 		}
+	}
+}
+
+func TestChartSVGAxisIsBesideThePlot(t *testing.T) {
+	svg := string(chartSVG([]dayCount{{Day: "2026-01-01", Visitors: 3, Views: 27420}, {Day: "2026-01-02", Visitors: 1, Views: 5}}))
+	axisStart := strings.Index(svg, `<svg class="chartaxis" aria-hidden="true">`)
+	plotStart := strings.Index(svg, `<svg class="chart" role="img"`)
+	if axisStart < 0 || plotStart < axisStart {
+		t.Fatalf("want the axis SVG before the plot SVG: %s", svg)
+	}
+	axis, plot := svg[axisStart:plotStart], svg[plotStart:]
+	for _, label := range []string{">0<", ">20,000<", ">40,000<"} {
+		if !strings.Contains(axis, label) || strings.Contains(plot, label) {
+			t.Errorf("tick %s must be in the axis SVG only: %s", label, svg)
+		}
+	}
+	if !strings.Contains(axis, `text-anchor="end"`) {
+		t.Errorf("axis labels are not right-aligned: %s", axis)
+	}
+	if strings.Count(plot, `class="tick"`) != 2 {
+		t.Errorf("the plot should hold only the two date labels: %s", plot)
+	}
+	// Both SVGs take their height from the stylesheet; they must share it.
+	css, err := os.ReadFile("site/admin.css")
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := regexp.MustCompile(`(?m)^\.(chartaxis|chart) \{[^}]*height: (\d+px)`).FindAllStringSubmatch(string(css), -1)
+	if len(h) != 2 || h[0][2] != h[1][2] {
+		t.Errorf("axis and plot heights differ: %v", h)
 	}
 }
 
