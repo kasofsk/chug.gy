@@ -49,7 +49,10 @@ docker build -t chug.gy .
 ## What is where
 
 - `main.go` is the server: the routes, the form's checks, the file, the
-  policy headers and the redirects for short paths such as `/linux`.
+  policy headers, the redirects for short paths such as `/linux`, the
+  per-address limiters, and the cap on requests in flight (256; a page waits
+  up to 2 seconds for a place, then gets 503 with `Retry-After`, and `POST /e`
+  gets it at once; `/healthz` is never held).
 - `pages.go` declares the pages and A/B tests, checks them when the server
   starts, and serves them.
 - `admin.go` is the dashboard: sign-in with Hydra, the Keto check, the signed
@@ -59,7 +62,8 @@ docker build -t chug.gy .
   what they read from `events.db` and count, with the Wilson interval and the
   chance an arm beats the baseline.
 - `events.go` is the analytics: `POST /e`, the checks on an event, the daily
-  visitor ID and the SQLite store.
+  visitor ID and the SQLite store, which the writer fills in batches of up to
+  256 events per transaction.
 - `docs.go` renders the docs: the README's list is the sidebar, links between
   pages are rewritten to their paths here, and `llms.txt` names the pages
   here. `just run` reads a checkout beside this repository.

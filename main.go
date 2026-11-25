@@ -242,25 +242,39 @@ func (s *requestStore) open() (io.ReadCloser, error) {
 }
 
 // A small per-address limit on the form, so a script cannot fill the disk.
+// Times are kept as nanoseconds: an address costs a third of what it would as
+// time.Time, which is what a burst of distinct addresses fills memory with.
 type limiter struct {
 	mu      sync.Mutex
-	seen    map[string][]time.Time
+	seen    map[string][]int64
 	window  time.Duration
 	allowed int
 	now     func() time.Time
+	swept   int64 // when stale keys were last dropped
 }
 
 func newLimiter(allowed int, window time.Duration) *limiter {
-	return &limiter{seen: map[string][]time.Time{}, window: window, allowed: allowed, now: time.Now}
+	return &limiter{seen: map[string][]int64{}, window: window, allowed: allowed, now: time.Now}
 }
 
 func (l *limiter) allow(key string) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	now := l.now()
+	now := l.now().UnixNano()
+	w := int64(l.window)
+	// Stale keys go once a window, not on every call: each key is added by one
+	// call, so the sweep's cost is amortised over the calls that made the keys.
+	if now-l.swept >= w {
+		for k, times := range l.seen {
+			if len(times) == 0 || now-times[len(times)-1] >= w {
+				delete(l.seen, k)
+			}
+		}
+		l.swept = now
+	}
 	kept := l.seen[key][:0]
 	for _, t := range l.seen[key] {
-		if now.Sub(t) < l.window {
+		if now-t < w {
 			kept = append(kept, t)
 		}
 	}
@@ -269,13 +283,6 @@ func (l *limiter) allow(key string) bool {
 		return false
 	}
 	l.seen[key] = append(kept, now)
-	if len(l.seen) > 10000 {
-		for k, times := range l.seen {
-			if len(times) == 0 || now.Sub(times[len(times)-1]) >= l.window {
-				delete(l.seen, k)
-			}
-		}
-	}
 	return true
 }
 
@@ -298,6 +305,7 @@ type server struct {
 	events     *eventStore
 	eventLimit *limiter
 	limit      *limiter
+	inflight   chan struct{} // the semaphore shed uses; nil means no cap
 	docs       *docs
 	reg        *registry
 	auth       *adminAuth
@@ -317,7 +325,7 @@ func newServerWith(cfg config, files fs.FS, pages []pageDef, tests []testDef) (*
 	if err != nil {
 		return nil, fmt.Errorf("the pages: %w", err)
 	}
-	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), eventLimit: newLimiter(120, time.Minute), auth: newAdminAuth(), started: time.Now()}
+	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), eventLimit: newLimiter(120, time.Minute), auth: newAdminAuth(), started: time.Now(), inflight: make(chan struct{}, maxInFlight)}
 	if cfg.dataDir != "" {
 		if err := os.MkdirAll(cfg.dataDir, 0o700); err != nil {
 			return nil, fmt.Errorf("the data directory: %w", err)
@@ -393,7 +401,56 @@ func (s *server) handler() http.Handler {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		io.WriteString(w, "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /e\n")
 	})
-	return s.canonicalHost(securityHeaders(mux))
+	return s.canonicalHost(securityHeaders(s.shed(mux)))
+}
+
+// The most requests served at once. Each costs about 30 KiB while it runs (the
+// goroutine, the connection's buffers, the page being built); 256 of them is
+// well under 10 MiB of the 96 MiB GOMEMLIMIT, which leaves the rest for the
+// database, the docs and the garbage collector's headroom.
+const maxInFlight = 256
+
+// How long a page waits for a place before it is turned away.
+const shedWait = 2 * time.Second
+
+// Bounds the work in flight with a semaphore. Past the cap a page waits a
+// moment and then gets 503 with Retry-After; an event is refused at once, its
+// body unread. /healthz is never held.
+func (s *server) shed(next http.Handler) http.Handler {
+	if s.inflight == nil {
+		return next
+	}
+	busy := func(w http.ResponseWriter) {
+		w.Header().Set("Retry-After", "5")
+		w.Header().Set("Cache-Control", "no-store")
+		http.Error(w, "busy", http.StatusServiceUnavailable)
+	}
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			next.ServeHTTP(w, r)
+			return
+		}
+		select {
+		case s.inflight <- struct{}{}:
+		default:
+			if r.URL.Path == "/e" {
+				busy(w)
+				return
+			}
+			t := time.NewTimer(shedWait)
+			defer t.Stop()
+			select {
+			case s.inflight <- struct{}{}:
+			case <-t.C:
+				busy(w)
+				return
+			case <-r.Context().Done():
+				return
+			}
+		}
+		defer func() { <-s.inflight }()
+		next.ServeHTTP(w, r)
+	})
 }
 
 // Every answer carries the same document policy: the pages load only what the

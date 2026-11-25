@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -210,5 +211,68 @@ func TestLimiter(t *testing.T) {
 	now = now.Add(2 * time.Minute)
 	if !l.allow("a") {
 		t.Error("the window did not pass")
+	}
+}
+
+func TestLimiterDropsStaleKeys(t *testing.T) {
+	now := time.Unix(0, 0)
+	l := newLimiter(2, time.Minute)
+	l.now = func() time.Time { return now }
+	for i := 0; i < 50; i++ {
+		l.allow(fmt.Sprint("k", i))
+	}
+	now = now.Add(time.Minute + time.Second)
+	l.allow("fresh")
+	if len(l.seen) != 1 {
+		t.Errorf("%d keys kept after a window, want 1", len(l.seen))
+	}
+}
+
+func TestLimiterStillRefusesAndResets(t *testing.T) {
+	now := time.Unix(0, 0)
+	l := newLimiter(2, time.Minute)
+	l.now = func() time.Time { return now }
+	l.allow("a")
+	l.allow("a")
+	now = now.Add(59 * time.Second)
+	l.allow("other") // a sweep must not forgive a key still in its window
+	if l.allow("a") {
+		t.Error("a key over its limit was allowed")
+	}
+	now = now.Add(2 * time.Second)
+	if !l.allow("a") {
+		t.Error("the limit did not reset after the window")
+	}
+}
+
+func TestShedsPastTheCap(t *testing.T) {
+	s := &server{inflight: make(chan struct{}, 1)}
+	release := make(chan struct{})
+	entered := make(chan struct{}, 1)
+	h := s.shed(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/slow" {
+			entered <- struct{}{}
+			<-release
+		}
+	}))
+	go h.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("GET", "/slow", nil))
+	<-entered
+	defer close(release)
+
+	w := httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest("POST", "/e", nil))
+	if w.Code != 503 || w.Header().Get("Retry-After") == "" {
+		t.Errorf("/e answered %d, Retry-After %q", w.Code, w.Header().Get("Retry-After"))
+	}
+	w = httptest.NewRecorder()
+	h.ServeHTTP(w, httptest.NewRequest("GET", "/healthz", nil))
+	if w.Code != 200 {
+		t.Errorf("/healthz answered %d", w.Code)
+	}
+	w = httptest.NewRecorder()
+	start := time.Now()
+	h.ServeHTTP(w, httptest.NewRequest("GET", "/", nil))
+	if w.Code != 503 || w.Header().Get("Retry-After") == "" || time.Since(start) < shedWait/2 {
+		t.Errorf("a page answered %d after %v", w.Code, time.Since(start))
 	}
 }
