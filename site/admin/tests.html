@@ -1,9 +1,9 @@
-{{define "rate"}}{{if .NoVisitor}}<span class="none">—</span>{{else}}<span class="rate">{{.Rate}}</span> <span class="ci">{{.Interval}}</span><br><span class="ci">{{.Count}}</span>{{with .Chance}} <span class="chance">Chance {{.}}</span>{{end}}{{end}}{{end}}
+{{define "rate"}}{{if .NoVisitor}}<span class="none">—</span>{{else}}<span class="rate">{{.Rate}}</span> <span class="ci">{{.Interval}}</span><br><span class="ci">{{group .Count}}</span>{{with .Chance}} <span class="chance">Chance {{.}}</span>{{end}}{{end}}{{end}}
 {{define "content"}}<h1>Tests</h1>
 {{if not .Stored}}<p class="message">No data directory: events are not kept.</p>
 {{else if not .Sections}}<p class="message">None</p>{{end}}
 {{$heads := .Heads}}
-{{range .Sections}}<section class="test">
+{{range .Sections}}<div class="test">
 <h2>{{.ID}}{{if .Ended}} <span class="tag">Ended</span>{{end}}</h2>
 <p class="message">{{with .Route}}<code>{{.}}</code>{{else}}<span class="none">no route</span>{{end}}
 {{if .First}} · {{.First}} to {{.Last}}{{else}} · no events{{end}}</p>
@@ -13,7 +13,7 @@
 <tbody>
 {{range .Arms}}<tr{{if .Few}} class="few"{{end}}>
 <td class="wrap">{{.Name}}{{if .Baseline}} <span class="tag">Baseline</span>{{end}}{{if .Few}}<br><span class="tag">Too few visitors</span>{{end}}</td>
-<td class="num">{{.Visitors}}</td>
+<td class="num">{{group .Visitors}}</td>
 {{range .Rates}}<td{{if .Greyed}} class="few"{{end}}>{{template "rate" .}}</td>
 {{end}}</tr>
 {{end}}</tbody>
@@ -31,5 +31,5 @@
 {{end}}</tbody>
 </table>
 </div>
-{{end}}</section>
+{{end}}</div>
 {{end}}{{end}}
