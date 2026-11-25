@@ -1,0 +1,25 @@
+{{define "layout"}}<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>{{.Title}} · chug.gy admin</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css?v={{.StylesKey}}">
+<link rel="stylesheet" href="/admin/admin.css?v={{.AdminKey}}">
+</head>
+<body class="admin">
+<header class="bar">
+<a class="name" href="/admin">chug.gy admin</a>
+{{if .SignedIn}}<nav class="nav">
+{{range .Nav}}<a href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}>{{.Label}}</a>
+{{end}}</nav>
+<form class="out" method="post" action="/admin/sign-out"><button type="submit">Sign out</button></form>
+{{end}}</header>
+<main class="main">
+{{template "content" .}}
+</main>
+</body>
+</html>
+{{end}}

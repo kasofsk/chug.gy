@@ -1,5 +1,6 @@
 # One static binary, in an image that holds nothing else: no shell, no
-# libc, no certificates, because the server opens no connection of its own.
+# libc, no certificates: the server calls Hydra and Keto, but only over plain
+# HTTP inside the cluster, so it has nothing to verify.
 #
 # The image holds no docs. Where it runs, CHUG_SITE_DOCS names a directory
 # holding kasofsk/chuggy-docs (on chug.gy, the Deployment in gdoteof/chuggy-fabric

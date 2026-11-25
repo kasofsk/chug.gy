@@ -1,0 +1,14 @@
+{{define "content"}}<h1>Pages</h1>
+<div class="frame">
+<table>
+<thead><tr><th>Name</th><th>Path</th><th>Tests</th></tr></thead>
+<tbody>
+{{range .Rows}}<tr>
+<td><a href="/admin/pages/{{.Name}}">{{.Name}}</a></td>
+<td>{{with .Path}}<code>{{.}}</code>{{else}}<span class="none">none</span>{{end}}</td>
+<td>{{range $i, $t := .Tests}}{{if $i}}, {{end}}{{$t}}{{else}}<span class="none">none</span>{{end}}</td>
+</tr>
+{{end}}</tbody>
+</table>
+</div>
+{{end}}

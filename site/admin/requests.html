@@ -1,0 +1,34 @@
+{{define "content"}}<h1>Requests</h1>
+<div class="tools">
+<p class="count">{{if .Interest}}{{len .Rows}} of {{.Total}}{{else}}{{.Total}}{{end}}</p>
+<form class="filter" method="get" action="/admin">
+<label for="interest">Interest</label>
+<select id="interest" name="interest">
+<option value=""{{if not .Interest}} selected{{end}}>all</option>
+{{$cur := .Interest}}{{range .Interests}}<option value="{{.}}"{{if eq . $cur}} selected{{end}}>{{.}}</option>
+{{end}}</select>
+<button type="submit">Filter</button>
+</form>
+<a class="download" href="{{.CSV}}">Download CSV</a>
+</div>
+{{if not .Stored}}<p class="message">No data directory: requests are not kept.</p>{{end}}
+<div class="frame">
+<table class="requests">
+<thead><tr><th>Date (UTC)</th><th>Email</th><th>Name</th><th>GitHub</th><th>Interest</th><th>Note</th><th>Page</th><th>Test</th><th>Arm</th></tr></thead>
+<tbody>
+{{range .Rows}}{{if .Unreadable}}<tr class="bad"><td colspan="9">Unreadable line {{.Line}}</td></tr>
+{{else}}<tr>
+<td class="nowrap"><time datetime="{{.Stamp}}">{{.Day}}</time></td>
+<td><a href="mailto:{{.Email}}">{{.Email}}</a></td>
+<td>{{.Name}}</td>
+<td>{{with .GitHub}}<a href="https://github.com/{{.}}">{{.}}</a>{{end}}</td>
+<td>{{.Interest}}</td>
+<td class="note">{{.About}}</td>
+<td>{{.Page}}</td>
+<td>{{.Test}}</td>
+<td>{{.Arm}}</td>
+</tr>
+{{end}}{{end}}</tbody>
+</table>
+</div>
+{{end}}
