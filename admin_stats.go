@@ -142,12 +142,21 @@ func chartSVG(days []dayCount) template.HTML {
 	slot := 100 / float64(len(days))
 
 	var b strings.Builder
-	b.WriteString(`<svg class="chart" role="img" aria-label="Visitors and views by day">`)
+	var ticks []int
 	for _, v := range []int{0, scale / 2, scale} {
 		if v == 0 || v == scale || scale%2 == 0 {
-			fmt.Fprintf(&b, `<line class="grid" x1="0" x2="100%%" y1="%.1f" y2="%.1f"/><text class="tick" x="2" y="%.1f">%s</text>`,
-				y(v), y(v), y(v)-4, group(v))
+			ticks = append(ticks, v)
 		}
+	}
+	// The labels have a column of their own, an SVG beside the plot that
+	// shares its height and y, so each sits level with its gridline.
+	b.WriteString(`<div class="chartrow"><svg class="chartaxis" aria-hidden="true">`)
+	for _, v := range ticks {
+		fmt.Fprintf(&b, `<text class="tick" x="100%%" dx="-6" y="%.1f" text-anchor="end" dominant-baseline="central">%s</text>`, y(v), group(v))
+	}
+	b.WriteString(`</svg><svg class="chart" role="img" aria-label="Visitors and views by day">`)
+	for _, v := range ticks {
+		fmt.Fprintf(&b, `<line class="grid" x1="0" x2="100%%" y1="%.1f" y2="%.1f"/>`, y(v), y(v))
 	}
 	for i, d := range days {
 		x := slot * float64(i)
@@ -166,7 +175,7 @@ func chartSVG(days []dayCount) template.HTML {
 		fmt.Fprintf(&b, `<text class="tick" x="2" y="%g">%s</text>`, height-6, days[0].Day)
 		fmt.Fprintf(&b, `<text class="tick" x="100%%" dx="-2" y="%g" text-anchor="end">%s</text>`, height-6, days[len(days)-1].Day)
 	}
-	b.WriteString(`</svg>`)
+	b.WriteString(`</svg></div>`)
 	return template.HTML(b.String())
 }
 

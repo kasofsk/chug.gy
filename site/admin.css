@@ -74,9 +74,11 @@ body.admin { font-size: 15px; line-height: 1.45; }
 .tools .message { margin: 0; }
 
 .chartframe { padding: 8px; }
-.chart { display: block; width: 100%; height: 200px; }
+.chartrow { display: flex; }
+.chartaxis { flex: none; display: block; width: 4.5rem; height: 200px; }
+.chart { display: block; flex: 1; min-width: 0; height: 200px; }
 .chart .grid { stroke: var(--rule); stroke-width: 1; }
-.chart .tick { fill: var(--text-2); font-family: var(--sans); font-size: 0.8125rem; }
+.chart .tick, .chartaxis .tick { fill: var(--text-2); font-family: var(--sans); font-size: 0.8125rem; }
 .chart .views { fill: var(--rule-strong); }
 .chart .visitors { fill: var(--signal); }
 .chart .hit { fill: transparent; }
