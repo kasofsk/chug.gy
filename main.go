@@ -29,7 +29,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"html/template"
 	"io"
 	"io/fs"
 	"log"
@@ -49,10 +48,8 @@ import (
 //go:embed site
 var site embed.FS
 
-// The pages, read once. index.html is a template for the one value that
-// changes between builds, the stylesheet's cache key.
+// The pages, read once. The pages of pages.go are loaded with the server.
 var (
-	indexPage   *template.Template
 	requestPage []byte
 	styles      []byte
 	stylesKey   string
@@ -69,7 +66,6 @@ func init() {
 	styles = must("site.css")
 	sum := sha256.Sum256(styles)
 	stylesKey = hex.EncodeToString(sum[:8])
-	indexPage = template.Must(template.New("index").Parse(string(must("index.html"))))
 	requestPage = must("requested.html")
 }
 
@@ -121,6 +117,9 @@ type accessRequest struct {
 	GitHub   string    `json:"github,omitempty"`
 	Interest string    `json:"interest"`
 	About    string    `json:"about,omitempty"`
+	Page     string    `json:"page,omitempty"`
+	Test     string    `json:"test,omitempty"`
+	Arm      string    `json:"arm,omitempty"`
 }
 
 var (
@@ -265,11 +264,24 @@ type server struct {
 	store   *requestStore
 	limit   *limiter
 	docs    *docs
+	reg     *registry
 	started time.Time
 }
 
 func newServer(cfg config) (*server, error) {
-	s := &server{cfg: cfg, limit: newLimiter(5, 10*time.Minute), started: time.Now()}
+	files, err := fs.Sub(site, "site")
+	if err != nil {
+		return nil, err
+	}
+	return newServerWith(cfg, files, pageDefs, testDefs)
+}
+
+func newServerWith(cfg config, files fs.FS, pages []pageDef, tests []testDef) (*server, error) {
+	reg, err := newRegistry(files, pages, tests)
+	if err != nil {
+		return nil, fmt.Errorf("the pages: %w", err)
+	}
+	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), started: time.Now()}
 	if cfg.dataDir != "" {
 		if err := os.MkdirAll(cfg.dataDir, 0o700); err != nil {
 			return nil, fmt.Errorf("the data directory: %w", err)
@@ -314,7 +326,7 @@ func (s *server) handler() http.Handler {
 	if err != nil {
 		panic(err)
 	}
-	mux.HandleFunc("GET /{$}", s.index)
+	s.mountPages(mux)
 	mux.HandleFunc("GET /requested", s.requested)
 	mux.HandleFunc("POST /request-access", s.requestAccess)
 	mux.HandleFunc("GET /admin/requests", s.adminRequests)
@@ -389,17 +401,6 @@ func isLoopback(host string) bool {
 	return ip != nil && ip.IsLoopback()
 }
 
-func (s *server) index(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("Cache-Control", "public, max-age=300")
-	var page bytes.Buffer
-	if err := indexPage.Execute(&page, map[string]string{"StylesKey": stylesKey}); err != nil {
-		http.Error(w, "the page could not be drawn", http.StatusInternalServerError)
-		return
-	}
-	w.Write(page.Bytes())
-}
-
 func (s *server) requested(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-store")
@@ -454,6 +455,7 @@ func (s *server) requestAccess(w http.ResponseWriter, r *http.Request) {
 		answer(http.StatusTooManyRequests, "that is enough requests for now; try again later")
 		return
 	}
+	req.Page, req.Test, req.Arm = s.origin(r)
 	if err := s.store.append(req); err != nil {
 		log.Printf("a request could not be kept: %v", err)
 		answer(http.StatusInternalServerError, "the request could not be kept; try again in a moment")

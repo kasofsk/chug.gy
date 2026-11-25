@@ -36,12 +36,15 @@ docker build -t chug.gy .
 
 - `main.go` is the server: the routes, the form's checks, the file, the
   policy headers and the redirects for short paths such as `/linux`.
+- `pages.go` declares the pages and A/B tests, checks them when the server
+  starts, and serves them.
 - `docs.go` renders the docs: the README's list is the sidebar, links between
   pages are rewritten to their paths here, and `llms.txt` names the pages
   here. `just run` reads a checkout beside this repository.
-- `site/` is embedded into the binary: `index.html`, `requested.html`,
-  `site.css`, `site.js`, the fonts and the favicon. The work graph in the
-  hero is inline SVG in `index.html`.
+- `site/` is embedded into the binary: `pages/` (one template per page, such
+  as `home.html`), `partials/` (the request form and the footer), `requested.html`,
+  `docs.html`, `site.css`, `site.js`, the fonts and the favicon. The work
+  graph in the hero is inline SVG in `pages/home.html`.
 
 - `.github/workflows/chuggy-proof.yml` is a workflow started only by hand
   (`workflow_dispatch`); it prints its commit and ref, then succeeds or fails
@@ -50,6 +53,30 @@ docker build -t chug.gy .
   run and exits with its result. The `workflow-run-work` and `workflow-run`
   workloads in `.chug/configurations/default.json` run it, and the plan
   `workflow-proof` uses the second as an evaluator.
+
+## Pages and tests
+
+**Add a page.** Write `site/pages/<name>.html`, a whole document (it may use
+the partials in `site/partials/`: `{{template "form" .}}`, `{{template "footer" .}}`),
+and register it in `pageDefs` in `pages.go` with the same name (lowercase
+letters, digits, hyphens), optionally a `Path` of its own (exact; `/` is `GET /{$}`)
+and a `Stylesheet` under `site/`, served with a `?v=` content-hash key. Every
+page gets `.Name`, `.Canonical`, `.Test`, `.Arm`, `.StylesKey`, `.PageStylesheet`
+and `.PageStylesKey`. Put `data-page="{{.Name}}"` and the `data-test`/`data-arm`
+attributes on `<html>` as `home.html` does.
+
+**Declare a test.** Add a `testDef` to `testDefs` in `pages.go`: an ID, the
+route, and arms (a registered page and a positive weight each; the first is the
+baseline). A test's route takes over a page's own path, so `/` serves the
+visitor's arm in place. A bad declaration fails `go test` and stops the binary
+starting.
+
+**Changing a test's arms means giving it a new ID**, so results from different
+arms never mix.
+
+A test sets the cookie `chug_test_<id>` (90 days, `HttpOnly`), which holds only
+the arm's page name. The form records `page`, `test` and `arm` in each request's
+line when they check out.
 
 ## Starting the proof workflow
 
@@ -71,7 +98,8 @@ is read again before every call.
 ## Reading the requests
 
 Each line of `requests.jsonl` is one request: `at`, `email`, `name`, `github`,
-`interest` (`use`, `partner`, `invest` or `other`) and `about`. With a token:
+`interest` (`use`, `partner`, `invest` or `other`) and `about`, and, when the
+form can say, `page`, `test` and `arm`. With a token:
 
 ```sh
 curl -H "Authorization: Bearer $TOKEN" https://chug.gy/admin/requests
