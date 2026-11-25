@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-page="{{.Name}}"{{if .Test}} data-test="{{.Test}}" data-arm="{{.Arm}}"{{end}}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,6 +9,7 @@
 <meta property="og:description" content="Go Faster. Raise Your Standards.">
 <meta property="og:url" content="https://chug.gy/">
 <meta property="og:type" content="website">
+<link rel="canonical" href="{{.Canonical}}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/site.css?v={{.StylesKey}}">
 <script src="/site.js" defer></script>
@@ -139,58 +140,12 @@
     <h2 id="access-h">Request access</h2>
     <p>Chuggy is open by invitation. Tell us who you are and what you want to run on it.</p>
   </div>
-  <form class="request-form" method="post" action="/request-access" novalidate>
-    <div class="field">
-      <label for="email">Email</label>
-      <input id="email" name="email" type="email" autocomplete="email" required maxlength="254">
-    </div>
-    <div class="field-row">
-      <div class="field">
-        <label for="name">Name</label>
-        <input id="name" name="name" type="text" autocomplete="name" maxlength="200">
-      </div>
-      <div class="field">
-        <label for="github">GitHub username</label>
-        <input id="github" name="github" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40">
-      </div>
-    </div>
-    <fieldset class="field">
-      <legend>I am</legend>
-      <div class="choices">
-        <label><input type="radio" name="interest" value="use" checked> an entrepreneur</label>
-        <label><input type="radio" name="interest" value="partner"> a company that wants to build with Chuggy</label>
-        <label><input type="radio" name="interest" value="invest"> an investor</label>
-        <label><input type="radio" name="interest" value="other"> something else</label>
-      </div>
-    </fieldset>
-    <div class="field">
-      <label for="about">A few words</label>
-      <textarea id="about" name="about" rows="4" maxlength="2000"></textarea>
-    </div>
-    <div class="field-hp" aria-hidden="true">
-      <label for="website">Website</label>
-      <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
-    </div>
-    <p class="form-actions">
-      <button class="button" type="submit">Send</button>
-      <span class="form-status" role="status" aria-live="polite"></span>
-    </p>
-  </form>
+{{template "form" .}}
 </section>
 
 </main>
 
-<footer class="foot">
-  <div class="foot-inner">
-    <p class="foot-brand">Chuggy</p>
-    <p class="foot-links">
-      <a href="/docs">Docs</a>
-      <a href="https://github.com/kasofsk">GitHub</a>
-      <a href="/llms.txt">llms.txt</a>
-      <a href="/sign-in">Sign in</a>
-    </p>
-  </div>
-</footer>
+{{template "footer" .}}
 
 </body>
 </html>

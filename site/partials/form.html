@@ -1,0 +1,40 @@
+{{define "form"}}  <form class="request-form" method="post" action="/request-access" novalidate>
+    <input type="hidden" name="page" value="{{.Name}}">
+    <input type="hidden" name="test" value="{{.Test}}">
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" autocomplete="email" required maxlength="254">
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" maxlength="200">
+      </div>
+      <div class="field">
+        <label for="github">GitHub username</label>
+        <input id="github" name="github" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40">
+      </div>
+    </div>
+    <fieldset class="field">
+      <legend>I am</legend>
+      <div class="choices">
+        <label><input type="radio" name="interest" value="use" checked> an entrepreneur</label>
+        <label><input type="radio" name="interest" value="partner"> a company that wants to build with Chuggy</label>
+        <label><input type="radio" name="interest" value="invest"> an investor</label>
+        <label><input type="radio" name="interest" value="other"> something else</label>
+      </div>
+    </fieldset>
+    <div class="field">
+      <label for="about">A few words</label>
+      <textarea id="about" name="about" rows="4" maxlength="2000"></textarea>
+    </div>
+    <div class="field-hp" aria-hidden="true">
+      <label for="website">Website</label>
+      <input id="website" name="website" type="text" tabindex="-1" autocomplete="off">
+    </div>
+    <p class="form-actions">
+      <button class="button" type="submit">Send</button>
+      <span class="form-status" role="status" aria-live="polite"></span>
+    </p>
+  </form>
+{{end}}
