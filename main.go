@@ -1,9 +1,12 @@
 // chug.gy: chuggy's public site, and the form that asks for an invite.
 //
 // One static binary serves the pages embedded in it, takes a request for
-// access as one JSON line appended to a file, and serves that file back to
-// whoever holds the admin token or signs in to the dashboard at /admin. Nothing
-// else: no database. It makes three kinds of outbound call, all plain HTTP
+// access as one JSON line appended to requests.jsonl, and serves that file back
+// to whoever holds the admin token or signs in to the dashboard at /admin. It
+// also measures itself: the pages' own script posts events (views, scrolling,
+// time on the page, clicks, the form) to POST /e, and they are kept in SQLite
+// at events.db beside requests.jsonl, with a visitor ID that changes daily and
+// no address or User-Agent. Nothing else is stored. It makes three kinds of outbound call, all plain HTTP
 // inside the cluster: to chuggy's Hydra, to redeem a sign-in code and read the
 // keys that sign the id_token, and to chuggy's Keto, to ask whether the person
 // may open the dashboard.
@@ -11,8 +14,9 @@
 // Configuration is the environment:
 //
 //	CHUG_SITE_LISTEN            the address to listen on, default :8080
-//	CHUG_SITE_DATA              the directory requests.jsonl is kept in; unset,
-//	                            the form answers 503 and says so
+//	CHUG_SITE_DATA              the directory requests.jsonl, events.db, the
+//	                            daily salt and tmp/ are kept in; unset, the form
+//	                            answers 503 and says so and /e keeps nothing
 //	CHUG_SITE_ADMIN_TOKEN_FILE  a file holding the bearer token that reads the
 //	                            requests back; unset, the route is 404
 //	CHUG_SITE_HOST              the canonical host; a request for another host
@@ -289,13 +293,15 @@ func clientAddress(r *http.Request) string {
 }
 
 type server struct {
-	cfg     config
-	store   *requestStore
-	limit   *limiter
-	docs    *docs
-	reg     *registry
-	auth    *adminAuth
-	started time.Time
+	cfg        config
+	store      *requestStore
+	events     *eventStore
+	eventLimit *limiter
+	limit      *limiter
+	docs       *docs
+	reg        *registry
+	auth       *adminAuth
+	started    time.Time
 }
 
 func newServer(cfg config) (*server, error) {
@@ -311,12 +317,15 @@ func newServerWith(cfg config, files fs.FS, pages []pageDef, tests []testDef) (*
 	if err != nil {
 		return nil, fmt.Errorf("the pages: %w", err)
 	}
-	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), auth: newAdminAuth(), started: time.Now()}
+	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), eventLimit: newLimiter(120, time.Minute), auth: newAdminAuth(), started: time.Now()}
 	if cfg.dataDir != "" {
 		if err := os.MkdirAll(cfg.dataDir, 0o700); err != nil {
 			return nil, fmt.Errorf("the data directory: %w", err)
 		}
 		s.store = &requestStore{path: path.Join(cfg.dataDir, "requests.jsonl")}
+		if s.events, err = openEventStore(cfg.dataDir, s.host()); err != nil {
+			return nil, fmt.Errorf("the events database: %w", err)
+		}
 	}
 	if cfg.docsDir != "" {
 		host := cfg.host
@@ -359,11 +368,13 @@ func (s *server) handler() http.Handler {
 	s.mountPages(mux)
 	mux.HandleFunc("GET /requested", s.requested)
 	mux.HandleFunc("POST /request-access", s.requestAccess)
+	mux.HandleFunc("POST /e", s.postEvent)
 	mux.HandleFunc("GET /admin/requests", s.adminRequests)
 	s.mountAdmin(mux)
 	mux.HandleFunc("GET /healthz", s.healthz)
 	mux.HandleFunc("GET /site.css", s.stylesheet)
 	mux.Handle("GET /site.js", cacheFor(5*time.Minute, http.FileServerFS(assets)))
+	mux.Handle("GET /analytics.js", cacheFor(5*time.Minute, http.FileServerFS(assets)))
 	for from, to := range redirects {
 		mux.Handle("GET "+from, http.RedirectHandler(to, http.StatusFound))
 	}
@@ -380,7 +391,7 @@ func (s *server) handler() http.Handler {
 	mux.Handle("GET /favicon.svg", cacheFor(24*time.Hour, http.FileServerFS(assets)))
 	mux.HandleFunc("GET /robots.txt", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		io.WriteString(w, "User-agent: *\nAllow: /\nDisallow: /admin/\n")
+		io.WriteString(w, "User-agent: *\nAllow: /\nDisallow: /admin/\nDisallow: /e\n")
 	})
 	return s.canonicalHost(securityHeaders(mux))
 }
@@ -493,6 +504,7 @@ func (s *server) requestAccess(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Printf("request for access: %s (%s)", req.Email, req.Interest)
+	s.recordSubmit(r, req.Page, req.Test, req.Arm)
 	answer(http.StatusOK, "received")
 }
 

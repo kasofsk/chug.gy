@@ -171,6 +171,7 @@ func newAdminEnv(t *testing.T) *adminEnv {
 
 func (e *adminEnv) start(t *testing.T) {
 	t.Helper()
+	keepTmpdir(t)
 	s, err := newServer(e.cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -702,6 +703,7 @@ func TestPagesAndPreview(t *testing.T) {
 	cfg := config{dataDir: dir, host: "chug.gy"}
 	e := newAdminEnv(t)
 	cfg.admin = e.cfg.admin
+	keepTmpdir(t)
 	s, err := newServerWith(cfg, testFiles(t), twoPages, []testDef{abTest("/")})
 	if err != nil {
 		t.Fatal(err)

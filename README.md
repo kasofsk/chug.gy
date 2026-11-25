@@ -2,7 +2,7 @@
 
 chuggy's public site, and the form that asks for an invite. One static Go
 binary serves the pages embedded in it, keeps each request for access as one
-JSON line in a file, and serves that file back to the holder of an admin
+JSON line in a file, counts its own page views in a SQLite file, and serves that file back to the holder of an admin
 token, or to a person signed in at `/admin`. It makes three kinds of call, all
 plain HTTP inside the cluster: to chuggy's Hydra, to redeem a sign-in code and
 read the keys that sign the id_token; and to chuggy's Keto, to ask whether the
@@ -25,7 +25,7 @@ Serves on `:8080` with the form writing under `dist/` and the docs read from
 | Variable | Meaning |
 | --- | --- |
 | `CHUG_SITE_LISTEN` | The address to listen on. Default `:8080`. |
-| `CHUG_SITE_DATA` | The directory `requests.jsonl` is kept in. Unset, the form answers 503. |
+| `CHUG_SITE_DATA` | The directory `requests.jsonl`, `events.db`, the daily salt and `tmp/` are kept in. Unset, the form answers 503 and `POST /e` answers 204 and keeps nothing. |
 | `CHUG_SITE_ADMIN_TOKEN_FILE` | A file holding the bearer token `GET /admin/requests` takes. Unset, the route is 404. |
 | `CHUG_SITE_HOST` | The canonical host. A request for another host is redirected to it, except on loopback and for `/healthz`. |
 | `CHUG_SITE_OIDC_ISSUER` | The issuer, `https://auth.vteng.io` on chug.gy. The browser is sent to `<issuer>/oauth2/auth`. |
@@ -54,12 +54,14 @@ docker build -t chug.gy .
   starts, and serves them.
 - `admin.go` is the dashboard: sign-in with Hydra, the Keto check, the signed
   cookies, and the Requests and Pages pages.
+- `events.go` is the analytics: `POST /e`, the checks on an event, the daily
+  visitor ID and the SQLite store.
 - `docs.go` renders the docs: the README's list is the sidebar, links between
   pages are rewritten to their paths here, and `llms.txt` names the pages
   here. `just run` reads a checkout beside this repository.
 - `site/` is embedded into the binary: `pages/` (one template per page, such
   as `home.html`), `partials/` (the request form and the footer), `requested.html`,
-  `docs.html`, `admin/` (the dashboard's templates) with `admin.css`, `site.css`, `site.js`, the fonts and the favicon. The work
+  `docs.html`, `admin/` (the dashboard's templates) with `admin.css`, `site.css`, `site.js`, `analytics.js` (the page events), the fonts and the favicon. The work
   graph in the hero is inline SVG in `pages/home.html`.
 
 - `.github/workflows/chuggy-proof.yml` is a workflow started only by hand
@@ -95,6 +97,32 @@ arms never mix.
 A test sets the cookie `chug_test_<id>` (90 days, `HttpOnly`), which holds only
 the arm's page name. The form records `page`, `test` and `arm` in each request's
 line when they check out.
+
+## What is collected, and what is not
+
+The site measures itself, with no outside script. Each page's own script
+(`site/analytics.js`) tells this site's server when a page is opened, how far
+it is scrolled (25, 50, 75 and 100 percent), how many seconds it was in view,
+which marked links and buttons are clicked, and when someone starts the request
+form; the server notes when a request is sent, and which test arm the visitor
+saw. It also keeps the time, the country Cloudflare reports, the kind of device
+(phone, tablet or computer), where the visitor came from (the referring site's
+name, and any `utm_` tags in the link), and a visitor ID. The events are in
+`events.db` in the data directory.
+
+The visitor ID is a hash of a salt that is new every day, this site's name, the
+address and the browser's User-Agent, cut to 16 bytes, as
+[Plausible](https://plausible.io/data-policy) publishes. The salt is deleted
+the next day, so a person can be counted within one day and cannot be followed
+from one day to the next. No address and no User-Agent is stored. Known bots
+are not counted. The email and the other fields of the form never enter the
+event store; they go only to `requests.jsonl`, as before. A page opened as an
+admin preview, or by a browser under automation, sends nothing.
+
+The site sets two kinds of cookie: the test assignment `chug_test_<id>` (above)
+and the admin sign-in cookies. The analytics sets none and keeps nothing in the
+browser. In production there is no `/tmp`, so the server makes `tmp/` in the
+data directory and sets `TMPDIR` to it before SQLite opens.
 
 ## Starting the proof workflow
 

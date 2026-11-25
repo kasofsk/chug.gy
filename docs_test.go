@@ -31,6 +31,7 @@ func fakeDocs(t *testing.T) string {
 
 func docsServer(t *testing.T) http.Handler {
 	t.Helper()
+	keepTmpdir(t)
 	s, err := newServer(config{docsDir: fakeDocs(t), host: "chug.gy"})
 	if err != nil {
 		t.Fatal(err)

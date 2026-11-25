@@ -23,6 +23,7 @@ func testServer(t *testing.T, withToken bool) (*server, http.Handler, string) {
 		}
 		cfg.adminTokenFile = tokenFile
 	}
+	keepTmpdir(t)
 	s, err := newServer(cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -174,6 +175,7 @@ func TestAdminNeedsToken(t *testing.T) {
 	if w := get(h, "chug.gy", "/admin/requests"); w.Code != 404 {
 		t.Errorf("with no token configured the route answered %d", w.Code)
 	}
+	keepTmpdir(t)
 	s, err := newServer(config{dataDir: t.TempDir(), adminTokenFile: filepath.Join(t.TempDir(), "absent")})
 	if err != nil {
 		t.Fatal(err)
@@ -184,6 +186,7 @@ func TestAdminNeedsToken(t *testing.T) {
 }
 
 func TestNoStoreRefusesPolitely(t *testing.T) {
+	keepTmpdir(t)
 	s, err := newServer(config{host: "chug.gy"})
 	if err != nil {
 		t.Fatal(err)

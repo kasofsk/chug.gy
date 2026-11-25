@@ -50,6 +50,7 @@ func (o overlay) Open(name string) (fs.File, error) {
 func testWithTests(t *testing.T, pages []pageDef, tests []testDef) (http.Handler, string) {
 	t.Helper()
 	dir := t.TempDir()
+	keepTmpdir(t)
 	s, err := newServerWith(config{dataDir: dir, host: "chug.gy"}, testFiles(t), pages, tests)
 	if err != nil {
 		t.Fatal(err)
