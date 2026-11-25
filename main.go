@@ -2,7 +2,11 @@
 //
 // One static binary serves the pages embedded in it, takes a request for
 // access as one JSON line appended to a file, and serves that file back to
-// whoever holds the admin token. Nothing else: no database, no outbound call.
+// whoever holds the admin token or signs in to the dashboard at /admin. Nothing
+// else: no database. It makes three kinds of outbound call, all plain HTTP
+// inside the cluster: to chuggy's Hydra, to redeem a sign-in code and read the
+// keys that sign the id_token, and to chuggy's Keto, to ask whether the person
+// may open the dashboard.
 //
 // Configuration is the environment:
 //
@@ -16,6 +20,22 @@
 //	                            /healthz
 //	CHUG_SITE_DOCS              a checkout of kasofsk/chuggy-docs, rendered at
 //	                            /docs; unset, /docs and /llms.txt go to GitHub
+//
+// The dashboard at /admin is off (every page 404) until all of these are set,
+// CHUG_SITE_HOST among them, and both files exist and are long enough. The
+// files are read when needed, not at start.
+//
+//	CHUG_SITE_OIDC_ISSUER              the issuer, https://auth.vteng.io; the
+//	                                   browser is sent to <issuer>/oauth2/auth
+//	CHUG_SITE_OIDC_INTERNAL_URL        the same Hydra over the pod network; the
+//	                                   code is redeemed at <it>/oauth2/token and
+//	                                   keys are read from <it>/.well-known/jwks.json
+//	CHUG_SITE_OIDC_CLIENT_ID           the Hydra client, chuggy-chug-gy
+//	CHUG_SITE_OIDC_CLIENT_SECRET_FILE  a file holding that client's secret
+//	CHUG_SITE_SESSION_KEY_FILE         a file holding at least 32 bytes that sign
+//	                                   the cookies
+//	CHUG_SITE_KETO_READ_URL            Keto's read API, which is asked whether the
+//	                                   person holds Site:main#read_marketing
 package main
 
 import (
@@ -93,6 +113,7 @@ type config struct {
 	adminTokenFile string
 	host           string
 	docsDir        string
+	admin          adminConfig
 }
 
 func configFromEnv() config {
@@ -102,6 +123,14 @@ func configFromEnv() config {
 		adminTokenFile: os.Getenv("CHUG_SITE_ADMIN_TOKEN_FILE"),
 		host:           os.Getenv("CHUG_SITE_HOST"),
 		docsDir:        os.Getenv("CHUG_SITE_DOCS"),
+		admin: adminConfig{
+			issuer:         os.Getenv("CHUG_SITE_OIDC_ISSUER"),
+			internalURL:    os.Getenv("CHUG_SITE_OIDC_INTERNAL_URL"),
+			clientID:       os.Getenv("CHUG_SITE_OIDC_CLIENT_ID"),
+			secretFile:     os.Getenv("CHUG_SITE_OIDC_CLIENT_SECRET_FILE"),
+			sessionKeyFile: os.Getenv("CHUG_SITE_SESSION_KEY_FILE"),
+			ketoURL:        os.Getenv("CHUG_SITE_KETO_READ_URL"),
+		},
 	}
 	if c.listen == "" {
 		c.listen = ":8080"
@@ -265,6 +294,7 @@ type server struct {
 	limit   *limiter
 	docs    *docs
 	reg     *registry
+	auth    *adminAuth
 	started time.Time
 }
 
@@ -281,7 +311,7 @@ func newServerWith(cfg config, files fs.FS, pages []pageDef, tests []testDef) (*
 	if err != nil {
 		return nil, fmt.Errorf("the pages: %w", err)
 	}
-	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), started: time.Now()}
+	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), auth: newAdminAuth(), started: time.Now()}
 	if cfg.dataDir != "" {
 		if err := os.MkdirAll(cfg.dataDir, 0o700); err != nil {
 			return nil, fmt.Errorf("the data directory: %w", err)
@@ -330,6 +360,7 @@ func (s *server) handler() http.Handler {
 	mux.HandleFunc("GET /requested", s.requested)
 	mux.HandleFunc("POST /request-access", s.requestAccess)
 	mux.HandleFunc("GET /admin/requests", s.adminRequests)
+	s.mountAdmin(mux)
 	mux.HandleFunc("GET /healthz", s.healthz)
 	mux.HandleFunc("GET /site.css", s.stylesheet)
 	mux.Handle("GET /site.js", cacheFor(5*time.Minute, http.FileServerFS(assets)))

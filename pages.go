@@ -49,6 +49,7 @@ var testDefs = []testDef{}
 type pageData struct {
 	Name           string
 	Canonical      string
+	Preview        bool   // an admin's preview: the page's script sends nothing
 	Test           string // the test being shown, empty outside one
 	Arm            string // the arm being shown, empty outside a test
 	StylesKey      string // cache key of /site.css
@@ -77,7 +78,7 @@ var (
 // The routes the binary serves whatever the pages are, with those ending in
 // "/" standing for everything below them.
 func fixedRoutes() []string {
-	fixed := []string{"/requested", "/request-access", "/admin/requests", "/healthz",
+	fixed := []string{"/requested", "/request-access", "/admin", "/admin/", "/healthz",
 		"/site.css", "/site.js", "/robots.txt", "/favicon.svg", "/fonts/", "/docs", "/docs/", "/llms.txt"}
 	for from := range redirects {
 		fixed = append(fixed, from)
@@ -234,7 +235,7 @@ func (s *server) canonicalURL(route string) string {
 func (s *server) servePage(p *page, route string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=300")
-		s.render(w, p, route, "", "")
+		s.render(w, p, route, "", "", false)
 	}
 }
 
@@ -264,14 +265,15 @@ func (s *server) serveTest(t testDef, route string) http.HandlerFunc {
 				Secure:   !isLoopback(host),
 			})
 		}
-		s.render(w, s.reg.pages[name], route, t.ID, name)
+		s.render(w, s.reg.pages[name], route, t.ID, name, false)
 	}
 }
 
-func (s *server) render(w http.ResponseWriter, p *page, route, test, armName string) {
+func (s *server) render(w http.ResponseWriter, p *page, route, test, armName string, preview bool) {
 	data := pageData{
 		Name:      p.def.Name,
 		Canonical: s.canonicalURL(route),
+		Preview:   preview,
 		Test:      test,
 		Arm:       armName,
 		StylesKey: stylesKey,
