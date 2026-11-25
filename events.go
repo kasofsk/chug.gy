@@ -193,15 +193,52 @@ func migrateEvents(db *sql.DB) error {
 const insertEvent = `INSERT INTO events (at, day, kind, page, path, test, arm, referrer, utm_source, utm_medium, utm_campaign, target, value, visitor, country, device)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-// Writes queued events, so a page's own request never waits on the disk.
+const maxBatch = 256
+
+// Writes queued events, so a page's own request never waits on the disk. It
+// takes one, then whatever else is waiting up to maxBatch, and keeps the batch
+// in one transaction.
 func (s *eventStore) writer() {
 	defer close(s.done)
+	batch := make([]event, 0, maxBatch)
 	for e := range s.queue {
-		if _, err := s.db.Exec(insertEvent, e.At.Format(time.RFC3339), e.Day, e.Kind, e.Page, e.Path, e.Test, e.Arm,
-			e.Referrer, e.UTMSource, e.UTMMedium, e.UTMCampaign, e.Target, e.Value, e.Visitor, e.Country, e.Device); err != nil {
+		batch = append(batch[:0], e)
+	fill:
+		for len(batch) < maxBatch {
+			select {
+			case e, ok := <-s.queue:
+				if !ok {
+					break fill
+				}
+				batch = append(batch, e)
+			default:
+				break fill
+			}
+		}
+		if err := s.writeBatch(batch); err != nil {
 			log.Printf("an event could not be kept: %v", err)
 		}
 	}
+}
+
+func (s *eventStore) writeBatch(batch []event) error {
+	tx, err := s.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+	stmt, err := tx.Prepare(insertEvent)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	for _, e := range batch {
+		if _, err := stmt.Exec(e.At.Format(time.RFC3339), e.Day, e.Kind, e.Page, e.Path, e.Test, e.Arm,
+			e.Referrer, e.UTMSource, e.UTMMedium, e.UTMCampaign, e.Target, e.Value, e.Visitor, e.Country, e.Device); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }
 
 // Waits for queued events to be written, then closes the database.

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -367,3 +368,76 @@ func TestAnalyticsScriptGuardsAndTransport(t *testing.T) {
 // Opening the store sets TMPDIR to a directory that goes away with the test;
 // this has the test put the old value back when it ends.
 func keepTmpdir(t *testing.T) { t.Setenv("TMPDIR", os.Getenv("TMPDIR")) }
+
+func testEvent(i int) event {
+	return event{eventIn: eventIn{Kind: "view", Page: "home", Value: 0, Path: fmt.Sprint("/", i)},
+		At: time.Unix(int64(i), 0).UTC(), Day: "2026-01-01", Visitor: "v"}
+}
+
+func countRows(t *testing.T, dir string) int {
+	t.Helper()
+	db, err := sql.Open("sqlite", filepath.Join(dir, "events.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var n int
+	if err := db.QueryRow(`SELECT count(*) FROM events`).Scan(&n); err != nil {
+		t.Fatal(err)
+	}
+	return n
+}
+
+func TestWriterWritesABatchWholeAndCloseFlushes(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("TMPDIR", t.TempDir())
+	s, err := openEventStore(dir, "chug.gy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for i := 0; i < 1000; i++ {
+		s.queue <- testEvent(i)
+	}
+	if err := s.close(); err != nil {
+		t.Fatal(err)
+	}
+	if n := countRows(t, dir); n != 1000 {
+		t.Errorf("%d events kept, want 1000", n)
+	}
+}
+
+func TestFailedBatchDoesNotStopWriter(t *testing.T) {
+	dir := t.TempDir()
+	t.Setenv("TMPDIR", t.TempDir())
+	s, err := openEventStore(dir, "chug.gy")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := s.writeBatch([]event{testEvent(1), testEvent(2)}); err != nil {
+		t.Fatal(err)
+	}
+	// A trigger that refuses one event makes its whole batch fail.
+	if _, err := s.db.Exec(`CREATE TRIGGER refuse BEFORE INSERT ON events WHEN NEW.path = '/bad' BEGIN SELECT RAISE(ABORT, 'no'); END`); err != nil {
+		t.Fatal(err)
+	}
+	bad := testEvent(3)
+	bad.Path = "/bad"
+	if s.writeBatch([]event{testEvent(4), bad}) == nil {
+		t.Fatal("the failing batch succeeded")
+	}
+	s.queue <- bad
+	for len(s.queue) > 0 {
+		time.Sleep(time.Millisecond)
+	}
+	time.Sleep(200 * time.Millisecond) // the writer has taken it and failed
+	s.queue <- testEvent(5)
+	s.queue <- testEvent(6)
+	if err := s.close(); err != nil {
+		t.Fatal(err)
+	}
+	// 1 and 2 from the first batch; 4 rolled back with its failed batch; 5 and
+	// 6 after the failure.
+	if n := countRows(t, dir); n != 4 {
+		t.Errorf("%d events kept, want 4", n)
+	}
+}
