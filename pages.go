@@ -79,7 +79,7 @@ var (
 // "/" standing for everything below them.
 func fixedRoutes() []string {
 	fixed := []string{"/requested", "/request-access", "/admin", "/admin/", "/healthz",
-		"/site.css", "/site.js", "/robots.txt", "/favicon.svg", "/fonts/", "/docs", "/docs/", "/llms.txt"}
+		"/e", "/site.css", "/site.js", "/analytics.js", "/robots.txt", "/favicon.svg", "/fonts/", "/docs", "/docs/", "/llms.txt"}
 	for from := range redirects {
 		fixed = append(fixed, from)
 	}

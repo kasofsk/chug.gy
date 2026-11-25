@@ -13,17 +13,18 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="/site.css?v={{.StylesKey}}">
 <script src="/site.js" defer></script>
+<script src="/analytics.js" defer></script>
 </head>
 <body>
 
 <header class="top">
   <a class="brand" href="/">Chuggy</a>
   <nav class="top-nav" aria-label="Site">
-    <a href="#why">Why</a>
-    <a href="#how">How it works</a>
-    <a href="/docs">Docs</a>
-    <a href="/sign-in">Sign in</a>
-    <a class="button button-small" href="#access">Request access</a>
+    <a data-track="nav-why" href="#why">Why</a>
+    <a data-track="nav-how" href="#how">How it works</a>
+    <a data-track="nav-docs" href="/docs">Docs</a>
+    <a data-track="nav-sign-in" href="/sign-in">Sign in</a>
+    <a class="button button-small" data-track="cta-nav-request" href="#access">Request access</a>
   </nav>
 </header>
 
@@ -36,8 +37,8 @@
       <p class="lead">Chuggy is an agentic development platform. It provides a simple and flexible framework to build software, products, and anything else you can imagine.</p>
       <p class="lead">Solopreneur, startup, or enterprise — Chuggy works for you.</p>
       <p class="actions">
-        <a class="button" href="#access">Request access</a>
-        <a class="link-arrowless" href="/docs">Read the docs</a>
+        <a class="button" data-track="cta-hero-request" href="#access">Request access</a>
+        <a class="link-arrowless" data-track="cta-hero-docs" href="/docs">Read the docs</a>
       </p>
     </div>
   </div>
@@ -131,7 +132,7 @@
   <h2 id="proof-h">Built on itself</h2>
   <div class="proof-body">
     <p>Chuggy's own development runs on Chuggy. Each change is a ticket going through the exact same process users use. Chuggy is the ultimate dogfood.</p>
-    <p>The core is a <a href="https://github.com/kasofsk/chug-ticket-domain">formal model</a> specified in <a href="https://quint.sh/">Quint</a>. The <a href="https://github.com/kasofsk/chuggy">primary service</a> is public on GitHub, and the agent runners for <a href="https://github.com/kasofsk/chuggy-linux">Linux</a>, <a href="https://github.com/kasofsk/chuggy-darwin">macOS</a> and <a href="https://github.com/kasofsk/chuggy-windows">Windows</a> are open source. The <a href="/docs">docs</a> describe how a project is set up and how its jobs run.</p>
+    <p>The core is a <a data-track="out-formal-model" href="https://github.com/kasofsk/chug-ticket-domain">formal model</a> specified in <a data-track="out-quint" href="https://quint.sh/">Quint</a>. The <a data-track="out-chuggy" href="https://github.com/kasofsk/chuggy">primary service</a> is public on GitHub, and the agent runners for <a data-track="out-linux" href="https://github.com/kasofsk/chuggy-linux">Linux</a>, <a data-track="out-macos" href="https://github.com/kasofsk/chuggy-darwin">macOS</a> and <a data-track="out-windows" href="https://github.com/kasofsk/chuggy-windows">Windows</a> are open source. The <a href="/docs">docs</a> describe how a project is set up and how its jobs run.</p>
   </div>
 </section>
 
