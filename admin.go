@@ -531,7 +531,7 @@ var adminFiles = func() fs.FS {
 }()
 
 func adminTemplate(name string) *template.Template {
-	return template.Must(template.New("").ParseFS(adminFiles, "layout.html", name+".html"))
+	return template.Must(template.New("").Funcs(template.FuncMap{"group": group}).ParseFS(adminFiles, "layout.html", name+".html"))
 }
 
 var (

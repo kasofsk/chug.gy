@@ -125,47 +125,63 @@ func tableLabel(table, key string) string {
 	return "Unknown"
 }
 
-// A bar chart of views and visitors by day, drawn as SVG on the server. The
-// colours are the stylesheet's, through classes; nothing here is script or an
-// inline style.
+// A bar chart of views and visitors by day, drawn as SVG on the server. It has
+// no viewBox: the height is the stylesheet's fixed one, y is in pixels and x is
+// in percentages, so the bars fill the width while the text keeps its size.
+// The colours are the stylesheet's, through classes; nothing here is script or
+// an inline style.
 func chartSVG(days []dayCount) template.HTML {
-	const width, height, left, right, top, bottom = 480.0, 200.0, 36.0, 8.0, 10.0, 22.0
+	const height, top, bottom = 200.0, 16.0, 22.0
 	peak := 1
 	for _, d := range days {
 		peak = max(peak, d.Views, d.Visitors)
 	}
 	scale := niceCeil(peak)
-	plotW, plotH := width-left-right, height-top-bottom
+	plotH := height - top - bottom
 	y := func(v int) float64 { return top + plotH*(1-float64(v)/float64(scale)) }
-	slot := plotW / float64(len(days))
+	slot := 100 / float64(len(days))
 
 	var b strings.Builder
-	fmt.Fprintf(&b, `<svg class="chart" viewBox="0 0 %g %g" role="img" aria-label="Visitors and views by day">`, width, height)
+	b.WriteString(`<svg class="chart" role="img" aria-label="Visitors and views by day">`)
 	for _, v := range []int{0, scale / 2, scale} {
 		if v == 0 || v == scale || scale%2 == 0 {
-			fmt.Fprintf(&b, `<line class="grid" x1="%g" x2="%g" y1="%.1f" y2="%.1f"/><text class="tick" x="%g" y="%.1f" text-anchor="end">%d</text>`,
-				left, width-right, y(v), y(v), left-4, y(v)+4, v)
+			fmt.Fprintf(&b, `<line class="grid" x1="0" x2="100%%" y1="%.1f" y2="%.1f"/><text class="tick" x="2" y="%.1f">%s</text>`,
+				y(v), y(v), y(v)-4, group(v))
 		}
 	}
 	for i, d := range days {
-		x := left + slot*float64(i)
+		x := slot * float64(i)
 		bw := slot * 0.8
-		fmt.Fprintf(&b, `<g><title>%s: %d visitors, %d views</title>`, d.Day, d.Visitors, d.Views)
-		fmt.Fprintf(&b, `<rect class="hit" x="%.2f" y="%g" width="%.2f" height="%g"/>`, x, top, slot, plotH)
+		fmt.Fprintf(&b, `<g><title>%s: %s visitors, %s views</title>`, d.Day, group(d.Visitors), group(d.Views))
+		fmt.Fprintf(&b, `<rect class="hit" x="%.3f%%" y="%g" width="%.3f%%" height="%g"/>`, x, top, slot, plotH)
 		if d.Views > 0 {
-			fmt.Fprintf(&b, `<rect class="views" x="%.2f" y="%.2f" width="%.2f" height="%.2f"/>`, x+slot*0.1, y(d.Views), bw, y(0)-y(d.Views))
+			fmt.Fprintf(&b, `<rect class="views" x="%.3f%%" y="%.2f" width="%.3f%%" height="%.2f"/>`, x+slot*0.1, y(d.Views), bw, y(0)-y(d.Views))
 		}
 		if d.Visitors > 0 {
-			fmt.Fprintf(&b, `<rect class="visitors" x="%.2f" y="%.2f" width="%.2f" height="%.2f"/>`, x+slot*0.1+bw*0.2, y(d.Visitors), bw*0.6, y(0)-y(d.Visitors))
+			fmt.Fprintf(&b, `<rect class="visitors" x="%.3f%%" y="%.2f" width="%.3f%%" height="%.2f"/>`, x+slot*0.1+bw*0.2, y(d.Visitors), bw*0.6, y(0)-y(d.Visitors))
 		}
 		b.WriteString(`</g>`)
 	}
 	if len(days) > 0 {
-		fmt.Fprintf(&b, `<text class="tick" x="%g" y="%g">%s</text>`, left, height-6, days[0].Day)
-		fmt.Fprintf(&b, `<text class="tick" x="%g" y="%g" text-anchor="end">%s</text>`, width-right, height-6, days[len(days)-1].Day)
+		fmt.Fprintf(&b, `<text class="tick" x="2" y="%g">%s</text>`, height-6, days[0].Day)
+		fmt.Fprintf(&b, `<text class="tick" x="100%%" dx="-2" y="%g" text-anchor="end">%s</text>`, height-6, days[len(days)-1].Day)
 	}
 	b.WriteString(`</svg>`)
 	return template.HTML(b.String())
+}
+
+// A count grouped in thousands: 27,420.
+func group(n int) string {
+	s := strconv.Itoa(n)
+	neg := strings.HasPrefix(s, "-")
+	s = strings.TrimPrefix(s, "-")
+	for i := len(s) - 3; i > 0; i -= 3 {
+		s = s[:i] + "," + s[i:]
+	}
+	if neg {
+		s = "-" + s
+	}
+	return s
 }
 
 // The least of 1, 2, 4, 5, 10, 20, 40, 50, ... that is at least n; the even

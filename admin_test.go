@@ -800,3 +800,25 @@ func TestAdminFramesAreNotPublic(t *testing.T) {
 		}
 	}
 }
+
+func TestChartSVGKeepsTextSize(t *testing.T) {
+	svg := string(chartSVG([]dayCount{{Day: "2026-01-01", Visitors: 3, Views: 27420}, {Day: "2026-01-02", Visitors: 1, Views: 5}}))
+	for _, bad := range []string{"viewBox", "style=", "<script"} {
+		if strings.Contains(svg, bad) {
+			t.Errorf("chart contains %q: %s", bad, svg)
+		}
+	}
+	for _, want := range []string{`aria-label=`, `class="hit"`, `<title>`, `class="grid"`, ">40,000<", "27,420 views"} {
+		if !strings.Contains(svg, want) {
+			t.Errorf("chart lacks %q: %s", want, svg)
+		}
+	}
+}
+
+func TestGroup(t *testing.T) {
+	for n, want := range map[int]string{0: "0", 999: "999", 1000: "1,000", 27420: "27,420", 100001: "100,001", 1234567: "1,234,567", -1500: "-1,500"} {
+		if got := group(n); got != want {
+			t.Errorf("group(%d) = %q, want %q", n, got, want)
+		}
+	}
+}
