@@ -41,9 +41,12 @@ type arm struct {
 
 var pageDefs = []pageDef{
 	{Name: "home", Path: "/"},
+	{Name: "orchestration", Stylesheet: "orchestration.css"},
 }
 
-var testDefs = []testDef{}
+var testDefs = []testDef{
+	{ID: "home-redesign", Route: "/", Arms: []arm{{"home", 1}, {"orchestration", 1}}},
+}
 
 // What every page is rendered from.
 type pageData struct {
@@ -80,7 +83,7 @@ var (
 // "/" standing for everything below them.
 func fixedRoutes() []string {
 	fixed := []string{"/requested", "/request-access", "/admin", "/admin/", "/healthz",
-		"/e", "/site.css", "/site.js", "/analytics.js", "/robots.txt", "/favicon.svg", "/fonts/", "/docs", "/docs/", "/llms.txt"}
+		"/e", "/site.css", "/site.js", "/analytics.js", "/robots.txt", "/favicon.svg", "/fonts/", "/img/", "/docs", "/docs/", "/llms.txt"}
 	for from := range redirects {
 		fixed = append(fixed, from)
 	}
