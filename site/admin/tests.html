@@ -1,0 +1,35 @@
+{{define "rate"}}{{if .NoVisitor}}<span class="none">—</span>{{else}}<span class="rate">{{.Rate}}</span> <span class="ci">{{.Interval}}</span><br><span class="ci">{{.Count}}</span>{{with .Chance}} <span class="chance">Chance {{.}}</span>{{end}}{{end}}{{end}}
+{{define "content"}}<h1>Tests</h1>
+{{if not .Stored}}<p class="message">No data directory: events are not kept.</p>
+{{else if not .Sections}}<p class="message">None</p>{{end}}
+{{$heads := .Heads}}
+{{range .Sections}}<section class="test">
+<h2>{{.ID}}{{if .Ended}} <span class="tag">Ended</span>{{end}}</h2>
+<p class="message">{{with .Route}}<code>{{.}}</code>{{else}}<span class="none">no route</span>{{end}}
+{{if .First}} · {{.First}} to {{.Last}}{{else}} · no events{{end}}</p>
+<div class="frame">
+<table class="rates">
+<thead><tr><th>Arm</th><th class="num">Visitors</th>{{range $heads}}<th>{{.}}</th>{{end}}</tr></thead>
+<tbody>
+{{range .Arms}}<tr{{if .Few}} class="few"{{end}}>
+<td class="wrap">{{.Name}}{{if .Baseline}} <span class="tag">Baseline</span>{{end}}{{if .Few}}<br><span class="tag">Too few visitors</span>{{end}}</td>
+<td class="num">{{.Visitors}}</td>
+{{range .Rates}}<td{{if .Greyed}} class="few"{{end}}>{{template "rate" .}}</td>
+{{end}}</tr>
+{{end}}</tbody>
+</table>
+</div>
+{{if .Names}}<h3>Clicks</h3>
+{{$names := .Names}}<div class="frame">
+<table class="rates">
+<thead><tr><th>Arm</th>{{range $names}}<th>{{.}}</th>{{end}}</tr></thead>
+<tbody>
+{{range .Arms}}<tr{{if .Few}} class="few"{{end}}>
+<td class="wrap">{{.Name}}</td>
+{{range .Clicks}}<td{{if .Greyed}} class="few"{{end}}>{{template "rate" .}}</td>
+{{end}}</tr>
+{{end}}</tbody>
+</table>
+</div>
+{{end}}</section>
+{{end}}{{end}}

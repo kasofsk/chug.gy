@@ -68,6 +68,7 @@ type registry struct {
 	pages map[string]*page
 	tests map[string]testDef // by ID
 	route map[string]testDef // by route
+	order []testDef          // in the order declared
 }
 
 var (
@@ -188,6 +189,7 @@ func newRegistry(files fs.FS, pdefs []pageDef, tdefs []testDef) (*registry, erro
 		}
 		reg.tests[t.ID] = t
 		reg.route[t.Route] = t
+		reg.order = append(reg.order, t)
 	}
 	return reg, nil
 }
