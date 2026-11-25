@@ -54,6 +54,10 @@ docker build -t chug.gy .
   starts, and serves them.
 - `admin.go` is the dashboard: sign-in with Hydra, the Keto check, the signed
   cookies, and the Requests and Pages pages.
+- `admin_stats.go` is the dashboard's Traffic and Tests pages: the range and
+  "Show all" parameters, the chart, and what each table shows. `stats.go` is
+  what they read from `events.db` and count, with the Wilson interval and the
+  chance an arm beats the baseline.
 - `events.go` is the analytics: `POST /e`, the checks on an event, the daily
   visitor ID and the SQLite store.
 - `docs.go` renders the docs: the README's list is the sidebar, links between
@@ -155,12 +159,26 @@ curl -H "Authorization: Bearer $TOKEN" https://chug.gy/admin/requests
 
 `/admin` is Requests (newest first, filtered by `?interest=`, and
 `/admin/requests.csv` for the same rows); `/admin/pages` lists the registered
-pages and links each to a preview. A person signs in with their chuggy account
+pages and links each to a preview; `/admin/traffic` and `/admin/tests` read
+the events. A person signs in with their chuggy account
 (authorization code with PKCE, client `chuggy-chug-gy`); the site then asks
 Keto whether `Site:main#read_marketing` holds for them, and asks again on every
 request, remembering the answer for up to a minute. If Keto cannot be reached
 the answer is 503. The session is a cookie signed with the session key, good
 for 12 hours. Locally, on loopback, the redirect URI is
 `http://<host>/admin/callback`, which only a Hydra client registered with it,
-or a fake, will complete. Traffic and Tests slot in through `adminNav` in
+or a fake, will complete.
 `admin.go`.
+
+**Traffic** (`?days=7`, `30` or `90`, default 30, today included) charts
+visitors and views for each UTC day, with the range's totals, and lists pages,
+referring sites, campaigns, countries and devices by visitors; `?all=pages`
+(or another table's name) shows every row of that table instead of the top 10.
+**Tests** has a section for each declared test, then for each test found in
+the events that is no longer declared ("Ended"). Both count visitor-days: one
+visitor ID on one UTC day. A test's counts are of the visitor-days with a
+`view` carrying its test and arm, so no rate passes 1; each rate has its 95%
+Wilson interval, and each arm after the baseline the chance it beats the
+baseline (10,000 draws from Beta(1 + successes, 1 + failures), seeded by the
+data, so a reload shows the same figure). An arm with fewer than 100 visitors
+is greyed. Neither page names a winner.

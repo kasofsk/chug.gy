@@ -548,7 +548,7 @@ func TestReturnPageStaysInAdmin(t *testing.T) {
 }
 
 func TestAdminOffWithoutConfiguration(t *testing.T) {
-	paths := []string{"/admin", "/admin/", "/admin/pages", "/admin/pages/home", "/admin/requests.csv", "/admin/callback", "/admin/admin.css"}
+	paths := []string{"/admin", "/admin/", "/admin/pages", "/admin/pages/home", "/admin/traffic", "/admin/tests", "/admin/requests.csv", "/admin/callback", "/admin/admin.css"}
 	breakers := map[string]func(e *adminEnv){
 		"issuer":      func(e *adminEnv) { e.cfg.admin.issuer = "" },
 		"internal":    func(e *adminEnv) { e.cfg.admin.internalURL = "" },

@@ -468,6 +468,7 @@ func (s *server) mountAdmin(mux *http.ServeMux) {
 	mux.HandleFunc("GET /admin/requests.csv", s.admin(true, s.requestsCSV))
 	mux.HandleFunc("GET /admin/pages", s.admin(true, s.pagesPage))
 	mux.HandleFunc("GET /admin/pages/{name}", s.admin(true, s.preview))
+	s.mountStats(mux)
 	mux.HandleFunc("GET /admin/callback", s.admin(false, s.callback))
 	mux.HandleFunc("POST /admin/sign-out", s.admin(false, s.signOut))
 	mux.HandleFunc("GET /admin/admin.css", s.admin(false, s.adminStylesheet))
@@ -480,9 +481,11 @@ type navItem struct {
 	Active      bool
 }
 
-// The dashboard's sections. Traffic and Tests are added here.
+// The dashboard's sections.
 var adminNav = []navItem{
 	{Label: "Requests", Href: "/admin"},
+	{Label: "Traffic", Href: "/admin/traffic"},
+	{Label: "Tests", Href: "/admin/tests"},
 	{Label: "Pages", Href: "/admin/pages"},
 }
 

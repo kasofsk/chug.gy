@@ -63,3 +63,41 @@ body.admin { font-size: 15px; line-height: 1.45; }
 .none { color: var(--text-3); }
 .bad td { color: var(--signal); }
 .admin code { font-family: var(--mono, ui-monospace, SFMono-Regular, Menlo, monospace); font-size: 0.9em; }
+
+/* Traffic and Tests. */
+.admin h2 { font-family: var(--sans); font-size: 1rem; font-weight: 600; letter-spacing: 0; line-height: 1.2; max-width: none; margin: 24px 0 8px; }
+.admin h3 { font-family: var(--sans); font-size: 0.9375rem; font-weight: 600; letter-spacing: 0; line-height: 1.2; max-width: none; margin: 16px 0 8px; }
+.range { display: flex; gap: 4px 18px; }
+.range a { color: var(--text-2); text-decoration: none; }
+.range a:hover { color: var(--text); }
+.range a[aria-current="page"] { color: var(--text); text-decoration: underline; text-decoration-color: var(--signal); text-underline-offset: 0.35em; }
+.tools .message { margin: 0; }
+
+.chartframe { padding: 8px; }
+.chart { display: block; width: 100%; height: auto; }
+.chart .grid { stroke: var(--rule); stroke-width: 1; }
+.chart .tick { fill: var(--text-2); font-family: var(--sans); font-size: 11px; }
+.chart .views { fill: var(--rule-strong); }
+.chart .visitors { fill: var(--signal); }
+.chart .hit { fill: transparent; }
+.chart .hit:hover { fill: var(--signal-soft); }
+.legend { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; color: var(--text-2); }
+.legend .key { display: inline-block; width: 10px; height: 10px; margin-left: 12px; }
+.legend .key:first-child { margin-left: 0; }
+.legend .key.views { background: var(--rule-strong); }
+.legend .key.visitors { background: var(--signal); }
+.totals { display: flex; flex-wrap: wrap; gap: 8px 32px; margin: 12px 0 0; }
+.totals dt { color: var(--text-2); }
+.totals dd { margin: 0; font-size: 1.25rem; font-weight: 600; }
+
+.admin .num { text-align: right; font-variant-numeric: tabular-nums; }
+.wrap { overflow-wrap: anywhere; }
+.counts { min-width: 320px; }
+.rates { min-width: 720px; }
+.more { margin: 8px 0 0; }
+.tag { color: var(--text-2); font-size: 0.8125rem; }
+.ci { color: var(--text-2); font-size: 0.8125rem; font-variant-numeric: tabular-nums; }
+.rate { font-weight: 600; font-variant-numeric: tabular-nums; }
+.chance { display: inline-block; margin-top: 2px; }
+.admin td.few, .admin tr.few td.num { color: var(--text-3); }
+.few .rate, .few .ci, .few .chance { color: var(--text-3); font-weight: 400; }

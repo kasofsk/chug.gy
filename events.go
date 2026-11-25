@@ -32,7 +32,7 @@ const (
 	maxEventBytes = 4 << 10
 	maxEventStr   = 200
 	maxEventPath  = 500
-	schemaVersion = 1
+	schemaVersion = 2
 )
 
 var eventKinds = map[string]bool{
@@ -90,7 +90,8 @@ func deviceClass(ua string) string {
 }
 
 type eventStore struct {
-	db      *sql.DB
+	db      *sql.DB // the writer's
+	read    *sql.DB // the dashboard's: a connection of its own, so a slow query never holds up a write
 	dir     string
 	host    string
 	mu      sync.Mutex // guards the salt
@@ -120,7 +121,13 @@ func openEventStore(dir, host string) (*eventStore, error) {
 		db.Close()
 		return nil, err
 	}
-	s := &eventStore{db: db, dir: dir, host: host, queue: make(chan event, 1024), done: make(chan struct{}), now: time.Now}
+	read, err := sql.Open("sqlite", "file:"+filepath.Join(dir, "events.db")+"?_pragma=busy_timeout(5000)&_pragma=query_only(1)")
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+	read.SetMaxOpenConns(1)
+	s := &eventStore{db: db, read: read, dir: dir, host: host, queue: make(chan event, 1024), done: make(chan struct{}), now: time.Now}
 	go s.writer()
 	return s, nil
 }
@@ -133,8 +140,9 @@ func migrateEvents(db *sql.DB) error {
 	if v > schemaVersion {
 		return fmt.Errorf("events.db is schema version %d; this binary knows %d", v, schemaVersion)
 	}
-	if v < 1 {
-		for _, q := range []string{
+	// Each step takes the schema to the next version, all or nothing.
+	steps := [][]string{
+		{
 			`CREATE TABLE events (
 				id INTEGER PRIMARY KEY,
 				at TEXT NOT NULL,
@@ -156,11 +164,27 @@ func migrateEvents(db *sql.DB) error {
 			)`,
 			`CREATE INDEX events_day ON events (day, kind)`,
 			`CREATE INDEX events_test_arm ON events (test, arm, kind, day)`,
-			fmt.Sprintf("PRAGMA user_version = %d", schemaVersion),
-		} {
-			if _, err := db.Exec(q); err != nil {
+		},
+		{
+			// The Tests page counts visitor-days from this index alone, in its
+			// order, so it never sorts or reads the table.
+			`DROP INDEX events_test_arm`,
+			`CREATE INDEX events_tests ON events (test, arm, day, visitor, kind, value) WHERE test != ''`,
+		},
+	}
+	for ; v < len(steps); v++ {
+		tx, err := db.Begin()
+		if err != nil {
+			return err
+		}
+		for _, q := range append(steps[v], fmt.Sprintf("PRAGMA user_version = %d", v+1)) {
+			if _, err := tx.Exec(q); err != nil {
+				tx.Rollback()
 				return err
 			}
+		}
+		if err := tx.Commit(); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -184,6 +208,7 @@ func (s *eventStore) writer() {
 func (s *eventStore) close() error {
 	close(s.queue)
 	<-s.done
+	s.read.Close()
 	return s.db.Close()
 }
 

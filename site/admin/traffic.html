@@ -1,0 +1,30 @@
+{{define "content"}}<h1>Traffic</h1>
+<div class="tools">
+<nav class="range" aria-label="Range">
+{{range .Ranges}}<a href="{{.Href}}"{{if .Active}} aria-current="page"{{end}}>{{.Days}} days</a>
+{{end}}</nav>
+{{if .Stored}}<p class="message">{{.From}} to {{.To}}, UTC</p>{{end}}
+</div>
+{{if not .Stored}}<p class="message">No data directory: events are not kept.</p>{{else}}
+<div class="frame chartframe">
+{{.Chart}}
+</div>
+<p class="legend"><span class="key views"></span>Views <span class="key visitors"></span>Visitors</p>
+<dl class="totals">
+<div><dt>Visitors</dt><dd>{{.Visitors}}</dd></div>
+<div><dt>Views</dt><dd>{{.Views}}</dd></div>
+</dl>
+{{range .Tables}}<section>
+<h2>{{.Title}}</h2>
+{{if .Rows}}<div class="frame">
+<table class="counts">
+<thead><tr><th>{{.Head}}</th><th class="num">Visitors</th><th class="num">Views</th></tr></thead>
+<tbody>
+{{range .Rows}}<tr><td class="wrap">{{.Key}}</td><td class="num">{{.Visitors}}</td><td class="num">{{.Views}}</td></tr>
+{{end}}</tbody>
+</table>
+</div>
+{{if .More}}<p class="more"><a href="{{.Href}}">Show all</a></p>{{else if .All}}<p class="more"><a href="{{.Href}}">Show top 10</a></p>{{end}}
+{{else}}<p class="message">None</p>{{end}}
+</section>
+{{end}}{{end}}{{end}}
