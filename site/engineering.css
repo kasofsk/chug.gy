@@ -171,6 +171,11 @@ body {
 .stage-name { font-weight: 600; font-size: 15px; }
 .stage-note { font-size: 14px; color: var(--muted); }
 .stage-held .stage-note { color: var(--warm-text); }
+/* A stage that has run: what its run reported, then where and how it ran. */
+.stage-what-ran { gap: 4px; }
+.stage-report { margin: 0; font-size: 14px; line-height: 1.45; color: var(--text); }
+.stage-report-cmd { font-family: var(--mono); font-size: 13px; line-height: 1.5; }
+.stage-meta { font-family: var(--mono); font-size: 12px; color: var(--muted); }
 .stage-state { font-family: var(--mono); font-size: 13px; color: var(--ink); white-space: nowrap; }
 .stage-held .stage-state { color: var(--warm-state); font-weight: 500; }
 .stage-later .stage-state { color: var(--muted); }

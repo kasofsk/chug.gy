@@ -55,15 +55,15 @@
 </div>
 <div class="stages">
 <div class="stage">
-<div class="stage-what"><div class="stage-name">Work</div><div class="stage-note">Agent makes the change on your runner</div></div>
+<div class="stage-what stage-what-ran"><div class="stage-name">Work</div><p class="stage-report">Added test_routing_mass_balance: it runs the 12 baseline cases and fails when the closure error exceeds the note's tolerance. The solver and the baselines are unchanged.</p><div class="stage-meta">ran on Steve's desktop · Claude Opus · 6m 12s</div></div>
 <div class="stage-state">done</div>
 </div>
 <div class="stage">
-<div class="stage-what"><div class="stage-name">Checks</div><div class="stage-note">Regression suite against pinned baselines</div></div>
+<div class="stage-what stage-what-ran"><div class="stage-name">Checks</div><p class="stage-report stage-report-cmd">pytest tests/ exited 0<br>compare_baselines.py --all exited 0</p><div class="stage-meta">ran on the lab build server · 3m 48s</div></div>
 <div class="stage-state">passed</div>
 </div>
 <div class="stage">
-<div class="stage-what"><div class="stage-name">Review</div><div class="stage-note">Reviewing agent reads the change against the brief</div></div>
+<div class="stage-what stage-what-ran"><div class="stage-name">Review</div><p class="stage-report">Pass. The balance closes on all 12 baseline cases at the note's tolerance, and a 0.1% change to outflow makes the test fail. Nothing under solver/ or baselines/ changed.</p><div class="stage-meta">ran on Steve's desktop · Claude Sonnet · 58s</div></div>
 <div class="stage-state">passed</div>
 </div>
 <div class="stage stage-held">
