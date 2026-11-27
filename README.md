@@ -88,6 +88,9 @@ docker build -t chug.gy .
   run and exits with its result. The `workflow-run-work` and `workflow-run`
   workloads in `.chug/configurations/default.json` run it, and the plan
   `workflow-proof` uses the second as an evaluator.
+- `legal/` holds the texts of the terms of service (`terms.md`) and the
+  privacy policy (`privacy.md`) as Markdown. They are drafts awaiting counsel:
+  nothing embeds or serves them.
 
 ## Pages and tests
 
