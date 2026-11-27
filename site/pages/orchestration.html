@@ -388,7 +388,8 @@
       <a data-track="foot-docs" href="/docs">Docs</a>
       <a data-track="out-github" href="https://github.com/kasofsk">GitHub</a>
       <a data-track="foot-llms" href="/llms.txt">llms.txt</a>
-      <a data-track="foot-sign-in" href="/sign-in">Sign in</a>
+      {{range .Policies}}<a data-track="foot-{{.Slug}}" href="/{{.Slug}}">{{.Short}}</a>
+      {{end}}<a data-track="foot-sign-in" href="/sign-in">Sign in</a>
     </p>
   </div>
 </footer>

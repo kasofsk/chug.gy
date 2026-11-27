@@ -65,12 +65,13 @@ var testDefs = []testDef{
 type pageData struct {
 	Name           string
 	Canonical      string
-	Preview        bool   // an admin's preview: the page's script sends nothing
-	Test           string // the test being shown, empty outside one
-	Arm            string // the arm being shown, empty outside a test
-	StylesKey      string // cache key of /site.css
-	PageStylesheet string // the page's own stylesheet's path, or empty
-	PageStylesKey  string // that stylesheet's cache key
+	Preview        bool         // an admin's preview: the page's script sends nothing
+	Test           string       // the test being shown, empty outside one
+	Arm            string       // the arm being shown, empty outside a test
+	StylesKey      string       // cache key of /site.css
+	PageStylesheet string       // the page's own stylesheet's path, or empty
+	PageStylesKey  string       // that stylesheet's cache key
+	Policies       []policyLink // the policies that have a version, for the footer
 }
 
 type page struct {
@@ -96,6 +97,11 @@ var (
 // The routes the binary serves whatever the pages are, with those ending in
 // "/" standing for everything below them.
 func fixedRoutes() []string {
+	return append(baseRoutes(), policyRoutes(policyDefs)...)
+}
+
+// The fixed routes that are not a policy's.
+func baseRoutes() []string {
 	fixed := []string{"/requested", "/request-access", "/admin", "/admin/", "/healthz",
 		"/e", "/site.css", "/site.js", "/analytics.js", "/robots.txt", "/favicon.svg", "/fonts/", "/img/", "/docs", "/docs/", "/llms.txt"}
 	for from := range redirects {
@@ -322,6 +328,7 @@ func (s *server) render(w http.ResponseWriter, p *page, route, test, armName str
 		Test:      test,
 		Arm:       armName,
 		StylesKey: stylesKey,
+		Policies:  s.policies.links,
 	}
 	if p.def.Stylesheet != "" {
 		data.PageStylesheet = "/" + p.def.Stylesheet

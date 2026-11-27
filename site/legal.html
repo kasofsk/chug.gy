@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{.Title}} · chuggy</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/site.css?v={{.StylesKey}}">
+</head>
+<body class="docs-body">
+
+<header class="top">
+  <a class="brand" href="/">chuggy</a>
+  <nav class="top-nav" aria-label="Site">
+    <a href="/#why">Why</a>
+    <a href="/#how">How it works</a>
+    <a href="/docs">Docs</a>
+    <a href="/sign-in">Sign in</a>
+    <a class="button button-small" href="/#access">Request access</a>
+  </nav>
+</header>
+
+<div class="legal">
+  <main class="legal-main">
+    {{if not .IsCurrent}}<p class="legal-earlier">This is an earlier version. <a href="/{{.Slug}}">Version {{.Current}}</a> replaced it.</p>
+    {{end}}<article class="prose">{{.Body}}</article>
+    <div class="legal-versions">
+      <p>Version {{.Version}} · <a href="/{{.Slug}}/{{.Version}}.md">This version as text</a></p>
+      {{if .Others}}<p>Other versions</p>
+      <ul>{{range .Others}}<li><a href="/{{$.Slug}}/{{.}}">{{.}}</a></li>{{end}}</ul>
+      {{end}}
+    </div>
+  </main>
+</div>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <p class="foot-brand">Chuggy</p>
+    <p class="foot-links">
+      <a href="/docs">Docs</a>
+      <a href="https://github.com/kasofsk">GitHub</a>
+      <a href="/llms.txt">llms.txt</a>
+      {{range .Policies}}<a href="/{{.Slug}}">{{.Short}}</a>
+      {{end}}<a href="/sign-in">Sign in</a>
+    </p>
+  </div>
+</footer>
+
+</body>
+</html>
