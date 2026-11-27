@@ -25,10 +25,11 @@ func eventServer(t *testing.T) (*server, http.Handler, string) {
 		"pages/home-b.html":  {Data: []byte(`<html data-page="{{.Name}}">{{template "form" .}}</html>`)},
 		"partials/form.html": {Data: []byte(`{{define "form"}}<form></form>{{end}}`)},
 	}
-	pages := []pageDef{{Name: "home", Path: "/"}, {Name: "home-b"}}
-	tests := []testDef{{ID: "hero-1", Route: "/", Arms: []arm{{"home", 1}, {"home-b", 1}}}}
+	pages := []pageDef{{Name: "home", Path: "/home"}, {Name: "home-b", Path: "/home-b"}}
+	slots := []slotDef{{Route: "/", Test: "hero-1"}}
+	tests := []testDef{{ID: "hero-1", Arms: []arm{{"home", 1}, {"home-b", 1}}}}
 	keepTmpdir(t)
-	s, err := newServerWith(config{dataDir: dir, host: "chug.gy"}, files, pages, tests)
+	s, err := newServerWith(config{dataDir: dir, host: "chug.gy"}, files, pages, slots, tests)
 	if err != nil {
 		t.Fatal(err)
 	}

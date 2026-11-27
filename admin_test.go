@@ -705,7 +705,7 @@ func TestPagesAndPreview(t *testing.T) {
 	e := newAdminEnv(t)
 	cfg.admin = e.cfg.admin
 	keepTmpdir(t)
-	s, err := newServerWith(cfg, testFiles(t), twoPages, []testDef{abTest("/")})
+	s, err := newServerWith(cfg, testFiles(t), twoPages, append(abSlot("/"), slotDef{Route: "/x", Page: "alt"}), []testDef{abTest()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -714,7 +714,10 @@ func TestPagesAndPreview(t *testing.T) {
 	b.mustSignIn(t)
 
 	list := b.do("GET", "/admin/pages", nil).Body.String()
-	for _, want := range []string{`href="/admin/pages/home"`, `href="/admin/pages/alt"`, "<code>/alt</code>", "t1"} {
+	for _, want := range []string{`href="/admin/pages/home"`, `href="/admin/pages/alt"`,
+		`<a href="/home"><code>/home</code></a>`, `<a href="/alt"><code>/alt</code></a>`,
+		"<code>/</code> through test t1, <code>/x</code></td>", // alt: through the test, and directly
+	} {
 		if !strings.Contains(list, want) {
 			t.Errorf("the list lacks %s", want)
 		}
@@ -727,6 +730,9 @@ func TestPagesAndPreview(t *testing.T) {
 		body := w.Body.String()
 		if !strings.Contains(body, `data-page="`+name+`" data-preview`) || strings.Contains(body, "data-test") || strings.Contains(body, "data-arm") {
 			t.Errorf("%s preview's html tag: %.200s", name, body)
+		}
+		if !strings.Contains(body, `<link rel="canonical" href="https://chug.gy/`+name+`">`) {
+			t.Errorf("%s preview's canonical is not its own path", name)
 		}
 		if len(w.Result().Cookies()) != 0 {
 			t.Errorf("the preview set cookies: %v", w.Result().Cookies())

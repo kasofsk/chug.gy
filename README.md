@@ -53,8 +53,9 @@ docker build -t chug.gy .
   per-address limiters, and the cap on requests in flight (256; a page waits
   up to 2 seconds for a place, then gets 503 with `Retry-After`, and `POST /e`
   gets it at once; `/healthz` is never held).
-- `pages.go` declares the pages and A/B tests, checks them when the server
-  starts, and serves them.
+- `pages.go` declares the pages, the slots (what a shared route such as `/`
+  serves) and the A/B tests, checks them when the server starts, and serves
+  them.
 - `admin.go` is the dashboard: sign-in with Hydra, the Keto check, the signed
   cookies, and the Requests and Pages pages.
 - `admin_stats.go` is the dashboard's Traffic and Tests pages: the range and
@@ -88,8 +89,10 @@ docker build -t chug.gy .
 **Add a page.** Write `site/pages/<name>.html`, a whole document (it may use
 the partials in `site/partials/`: `{{template "form" .}}`, `{{template "footer" .}}`),
 and register it in `pageDefs` in `pages.go` with the same name (lowercase
-letters, digits, hyphens), optionally a `Path` of its own (exact; `/` is `GET /{$}`)
-and a `Stylesheet` under `site/`, served with a `?v=` content-hash key. Every
+letters, digits, hyphens), a `Path` of its own (required, exact, and never `/`)
+and optionally a `Stylesheet` under `site/`, served with a `?v=` content-hash
+key. A page is always served at its own path outside any test, even when it is
+also an arm: that visit reads and sets no test cookie. Every
 page gets `.Name`, `.Canonical`, `.Test`, `.Arm`, `.StylesKey`, `.PageStylesheet`
 and `.PageStylesKey`. Put `data-page="{{.Name}}"` and the `data-test`/`data-arm`
 attributes on `<html>` as `home.html` does, and `data-preview` when `.Preview`
@@ -99,17 +102,22 @@ this site serves: no style or script written into the page, and no font, image
 or script from another site. A page's images go in `site/img/`; a browser may
 keep one for a day, so a changed image takes a new name.
 
-**Declare a test.** Add a `testDef` to `testDefs` in `pages.go`: an ID, the
-route, and arms (a registered page and a positive weight each; the first is the
-baseline). A test's route takes over a page's own path, so `/` serves the
-visitor's arm in place. A bad declaration fails `go test` and stops the binary
-starting.
+**Say what a shared route serves.** A route such as `/` is a `slotDefs` entry
+in `pages.go`: a `Route` and exactly one of a `Page` (served there outside any
+test) or a `Test` (the visitor's arm is served there). A slot cannot take a
+page's own path, a page stylesheet's path or a fixed route.
+
+**Declare a test.** Add a `testDef` to `testDefs` in `pages.go`: an ID and arms
+(a registered page and a positive weight each; the first is the baseline), and
+a slot that serves it: every test is served by exactly one slot, whose route is
+the test's. A bad declaration fails `go test` and stops the binary starting.
 
 **Changing a test's arms means giving it a new ID**, so results from different
 arms never mix.
 
 The test `home-redesign` runs on `/`: half the visitors get `home`, the
-baseline, and half get `orchestration`.
+baseline, and half get `orchestration`. Each page can also be reached at its
+own address, `/home` and `/orchestration`, which is not part of the test.
 
 A test sets the cookie `chug_test_<id>` (90 days, `HttpOnly`), which holds only
 the arm's page name. The form records `page`, `test` and `arm` in each request's

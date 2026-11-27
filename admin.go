@@ -703,21 +703,24 @@ func (s *server) requestsCSV(w http.ResponseWriter, r *http.Request, _ *adminCre
 type pageRow struct {
 	Name  string
 	Path  string
-	Tests []string
+	Slots []slotServe // the slot routes that serve the page, in declared order
+}
+
+// A slot route that serves a page: directly, or as an arm of Test.
+type slotServe struct {
+	Route string
+	Test  string
 }
 
 func (s *server) pagesPage(w http.ResponseWriter, r *http.Request, _ *adminCreds, _ string) {
-	var ids []string
-	for id := range s.reg.tests {
-		ids = append(ids, id)
-	}
-	sort.Strings(ids)
 	var rows []pageRow
 	for name, p := range s.reg.pages {
 		row := pageRow{Name: name, Path: p.def.Path}
-		for _, id := range ids {
-			if s.reg.tests[id].hasArm(name) {
-				row.Tests = append(row.Tests, id)
+		for _, sl := range s.reg.slots {
+			if sl.Page == name {
+				row.Slots = append(row.Slots, slotServe{Route: sl.Route})
+			} else if sl.Test != "" && s.reg.tests[sl.Test].hasArm(name) {
+				row.Slots = append(row.Slots, slotServe{Route: sl.Route, Test: sl.Test})
 			}
 		}
 		rows = append(rows, row)
@@ -729,17 +732,13 @@ func (s *server) pagesPage(w http.ResponseWriter, r *http.Request, _ *adminCreds
 	}{s.frame("Pages", "Pages", true), rows})
 }
 
-// Renders a page as a visitor sees it, marked as a preview, with no test and
-// no assignment cookie.
+// Renders a page as a visitor sees it at its own path, marked as a preview,
+// with no test and no assignment cookie.
 func (s *server) preview(w http.ResponseWriter, r *http.Request, _ *adminCreds, _ string) {
 	p := s.reg.pages[r.PathValue("name")]
 	if p == nil {
 		s.errorPage(w, http.StatusNotFound, "Not found", "No page has that name.", false)
 		return
 	}
-	route := p.def.Path
-	if route == "" {
-		route = "/"
-	}
-	s.render(w, p, route, "", "", true)
+	s.render(w, p, p.def.Path, "", "", true)
 }
