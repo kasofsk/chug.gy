@@ -266,8 +266,8 @@ func TestPolicySlotsRefused(t *testing.T) {
 	}
 }
 
-// The binary's own table and files: it starts, publishes nothing yet, and
-// whatever it serves keeps to the policy.
+// The binary's own table and files: it starts, and whatever it publishes,
+// or leaves unpublished, keeps to the policy.
 func TestBinaryPolicies(t *testing.T) {
 	s, h, _ := testServer(t, false)
 	for _, d := range policyDefs {

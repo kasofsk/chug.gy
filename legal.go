@@ -46,7 +46,9 @@ type versionDef struct {
 }
 
 var policyDefs = []policyDef{
-	{Slug: "terms", Title: "Terms of Service", Short: "Terms"},
+	{Slug: "terms", Title: "Terms of Service", Short: "Terms", Versions: []versionDef{
+		{Version: "2026-11-27", Digest: "sha256:2e4db0a8427adf3ad494197bad9701085462a93f2e8538a946245f5252f27bc2"},
+	}},
 	{Slug: "privacy", Title: "Privacy Policy", Short: "Privacy"},
 }
 
