@@ -49,7 +49,9 @@ var policyDefs = []policyDef{
 	{Slug: "terms", Title: "Terms of Service", Short: "Terms", Versions: []versionDef{
 		{Version: "2026-11-27", Digest: "sha256:2e4db0a8427adf3ad494197bad9701085462a93f2e8538a946245f5252f27bc2"},
 	}},
-	{Slug: "privacy", Title: "Privacy Policy", Short: "Privacy"},
+	{Slug: "privacy", Title: "Privacy Policy", Short: "Privacy", Versions: []versionDef{
+		{Version: "2026-11-27", Digest: "sha256:5a513c5678d3269680c578985d9486c949cc57e73942f0a43fb0661d218e9a65"},
+	}},
 }
 
 const (
