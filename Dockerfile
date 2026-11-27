@@ -12,6 +12,7 @@ COPY go.mod go.sum ./
 RUN go mod download
 COPY *.go ./
 COPY site ./site
+COPY legal/published ./legal/published
 RUN CGO_ENABLED=0 GOFLAGS=-trimpath go build -ldflags='-s -w' -o /chug.gy .
 
 FROM scratch

@@ -376,3 +376,13 @@ section p { color: var(--text-2); max-width: var(--measure); }
   .docs-nav li a, .docs-nav li.nested a { padding: 4px 0; border-left: 0; margin: 0; font-size: inherit; }
   .docs-nav li a[aria-current="page"] { text-decoration: underline; text-underline-offset: 0.25em; }
 }
+
+/* --------------------------------------------------------------- legal -- */
+
+.legal { max-width: var(--width); margin: 0 auto; padding: clamp(24px, 4vw, 48px) var(--gutter) clamp(64px, 9vw, 128px); }
+.legal-main { max-width: 72ch; margin: 0 auto; }
+.legal-earlier { margin: 0 0 32px; padding: 12px 16px; border: 1px solid var(--rule-strong); border-radius: 4px; font-size: 0.9375rem; color: var(--text-2); }
+.legal-versions { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--rule); font-size: 0.875rem; color: var(--text-3); }
+.legal-versions p { margin: 0 0 8px; }
+.legal-versions a { color: var(--text-3); }
+.legal-versions ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; }

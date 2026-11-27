@@ -48,7 +48,8 @@
       <a href="/docs">Docs</a>
       <a href="https://github.com/kasofsk">GitHub</a>
       <a href="/llms.txt">llms.txt</a>
-      <a href="/sign-in">Sign in</a>
+      {{range .Policies}}<a href="/{{.Slug}}">{{.Short}}</a>
+      {{end}}<a href="/sign-in">Sign in</a>
     </p>
   </div>
 </footer>

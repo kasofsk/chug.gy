@@ -308,6 +308,7 @@ type server struct {
 	inflight   chan struct{} // the semaphore shed uses; nil means no cap
 	docs       *docs
 	reg        *registry
+	policies   *policies
 	auth       *adminAuth
 	started    time.Time
 }
@@ -321,11 +322,36 @@ func newServer(cfg config) (*server, error) {
 }
 
 func newServerWith(cfg config, files fs.FS, pages []pageDef, slots []slotDef, tests []testDef) (*server, error) {
+	published, err := fs.Sub(legalEmbedded, "legal/published")
+	if err != nil {
+		return nil, err
+	}
+	return newServerWithPolicies(cfg, files, pages, slots, tests, published, policyDefs)
+}
+
+// As newServerWith, with the policies' files and table given.
+func newServerWithPolicies(cfg config, files fs.FS, pages []pageDef, slots []slotDef, tests []testDef, published fs.FS, policyTable []policyDef) (*server, error) {
 	reg, err := newRegistry(files, pages, slots, tests)
 	if err != nil {
 		return nil, fmt.Errorf("the pages: %w", err)
 	}
-	s := &server{cfg: cfg, reg: reg, limit: newLimiter(5, 10*time.Minute), eventLimit: newLimiter(120, time.Minute), auth: newAdminAuth(), started: time.Now(), inflight: make(chan struct{}, maxInFlight)}
+	reserved := baseRoutes()
+	for _, sl := range reg.slots {
+		if sl.Route != "/" { // the one route that is not a prefix of the rest
+			reserved = append(reserved, sl.Route)
+		}
+	}
+	for _, p := range reg.pages {
+		reserved = append(reserved, p.def.Path)
+		if p.def.Stylesheet != "" {
+			reserved = append(reserved, "/"+p.def.Stylesheet)
+		}
+	}
+	pols, err := loadPolicies(published, policyTable, reserved, stylesKey)
+	if err != nil {
+		return nil, fmt.Errorf("the policies: %w", err)
+	}
+	s := &server{cfg: cfg, reg: reg, policies: pols, limit: newLimiter(5, 10*time.Minute), eventLimit: newLimiter(120, time.Minute), auth: newAdminAuth(), started: time.Now(), inflight: make(chan struct{}, maxInFlight)}
 	if cfg.dataDir != "" {
 		if err := os.MkdirAll(cfg.dataDir, 0o700); err != nil {
 			return nil, fmt.Errorf("the data directory: %w", err)
@@ -374,6 +400,7 @@ func (s *server) handler() http.Handler {
 		panic(err)
 	}
 	s.mountPages(mux)
+	s.policies.mount(mux)
 	mux.HandleFunc("GET /requested", s.requested)
 	mux.HandleFunc("POST /request-access", s.requestAccess)
 	mux.HandleFunc("POST /e", s.postEvent)

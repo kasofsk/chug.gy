@@ -236,6 +236,7 @@ func (s *server) docsHandler() http.Handler {
 			"Page":      page,
 			"Listed":    s.docs.listed,
 			"Source":    "https://github.com/kasofsk/chuggy-docs/blob/main/docs/" + page.Source,
+			"Policies":  s.policies.links,
 		})
 		if err != nil {
 			http.Error(w, "the page could not be drawn", http.StatusInternalServerError)

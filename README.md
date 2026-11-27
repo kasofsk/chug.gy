@@ -56,6 +56,10 @@ docker build -t chug.gy .
 - `pages.go` declares the pages, the slots (what a shared route such as `/`
   serves) and the A/B tests, checks them when the server starts, and serves
   them.
+- `legal.go` declares the policies (`terms`, `privacy`) and the versions
+  published of each, checks them against the files in `legal/published/` when
+  the server starts, and serves them at `/<slug>`, `/<slug>/<version>` and
+  `/<slug>/<version>.md`.
 - `admin.go` is the dashboard: sign-in with Hydra, the Keto check, the signed
   cookies, and the Requests and Pages pages.
 - `admin_stats.go` is the dashboard's Traffic and Tests pages: the range and
@@ -70,7 +74,7 @@ docker build -t chug.gy .
   here. `just run` reads a checkout beside this repository.
 - `site/` is embedded into the binary: `pages/` (one template per page, such
   as `home.html`), `partials/` (the request form and the footer), `requested.html`,
-  `docs.html`, `admin/` (the dashboard's templates) with `admin.css`, `site.css`, `site.js`, `analytics.js` (the page events), the fonts, `img/` (the pages' images, served at `/img/`) and the favicon. The work
+  `docs.html`, `legal.html` (a policy's page), `admin/` (the dashboard's templates) with `admin.css`, `site.css`, `site.js`, `analytics.js` (the page events), the fonts, `img/` (the pages' images, served at `/img/`) and the favicon. The work
   graph in the hero is inline SVG in `pages/home.html`.
   `pages/orchestration.html` loads `orchestration.css` and no other stylesheet;
   its screenshots are `img/orchestration-*.webp`, and its font is Archivo
@@ -90,7 +94,8 @@ docker build -t chug.gy .
   `workflow-proof` uses the second as an evaluator.
 - `legal/` holds the texts of the terms of service (`terms.md`) and the
   privacy policy (`privacy.md`) as Markdown. They are drafts awaiting counsel:
-  nothing embeds or serves them.
+  neither is embedded or served. `legal/published/` is what the binary embeds
+  and serves: one file for each published version, and a `README.md`.
 
 ## Pages and tests
 
@@ -101,8 +106,9 @@ letters, digits, hyphens), a `Path` of its own (required, exact, and never `/`)
 and optionally a `Stylesheet` under `site/`, served with a `?v=` content-hash
 key. A page is always served at its own path outside any test, even when it is
 also an arm: that visit reads and sets no test cookie. Every
-page gets `.Name`, `.Canonical`, `.Test`, `.Arm`, `.StylesKey`, `.PageStylesheet`
-and `.PageStylesKey`. Put `data-page="{{.Name}}"` and the `data-test`/`data-arm`
+page gets `.Name`, `.Canonical`, `.Test`, `.Arm`, `.StylesKey`, `.PageStylesheet`,
+`.PageStylesKey` and `.Policies` (the policies that have a version, which the
+footer links). Put `data-page="{{.Name}}"` and the `data-test`/`data-arm`
 attributes on `<html>` as `home.html` does, and `data-preview` when `.Preview`
 is set: the dashboard's preview at `/admin/pages/<name>` renders a page that
 way, with no test and no cookie. The policy header allows a page only what
@@ -130,6 +136,30 @@ own address, `/home` and `/orchestration`, which is not part of the test.
 A test sets the cookie `chug_test_<id>` (90 days, `HttpOnly`), which holds only
 the arm's page name. The form records `page`, `test` and `arm` in each request's
 line when they check out.
+
+## Publishing a policy version
+
+A version is one file, `legal/published/<slug>/<version>.md`, where the slug
+is `terms` or `privacy` and the version is the date it takes effect, written
+`2006-01-02`. Its text carries exactly one line beginning `Effective `, and it
+reads `Effective ` and that date as `January 2, 2006`; the drafts say
+`Effective [date to be set]`, so a draft cannot be published as it stands.
+Declare it in `policyDefs` in `legal.go`, under its policy's `Versions`, with
+the digest of the file's bytes, `sha256:` and lowercase hex
+(`sha256sum legal/published/<slug>/<version>.md`). The newest version by date
+is the policy's current one. A bad declaration, a file that is not declared, or
+a digest that does not match fails `go test` and stops the binary starting.
+
+**A published file is never changed once it is on `main`;** a new text is a new
+file under a new date. A chuggy deployment's agreement plane is told
+`https://chug.gy/<slug>/<version>` as the policy's `url` and the declared
+digest as its `digest`. To check what is served:
+
+```sh
+curl -fsS https://chug.gy/<slug>/<version>.md | sha256sum
+```
+
+While a policy has no version, its routes are 404 and no footer links it.
 
 ## What is collected, and what is not
 
