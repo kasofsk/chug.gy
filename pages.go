@@ -17,21 +17,29 @@ import (
 )
 
 // A page is one html/template under site/pages/ that owns its whole document,
-// registered here by a short stable name. Path is where it is served on its
-// own ("" for none); Stylesheet, if set, names a file under site/ that only
-// this page loads.
+// registered here by a short stable name. Path is its own URL, required and
+// never "/": it is always served there outside any test, even when it is also
+// an arm. Stylesheet, if set, names a file under site/ that only this page loads.
 type pageDef struct {
 	Name       string
 	Path       string
 	Stylesheet string
 }
 
-// A test splits the visitors of one route between pages. The first arm is the
-// baseline. To change a test's arms, give it a new ID.
+// A test splits the visitors of a route between pages. Its route is that of
+// the one slot that serves it. The first arm is the baseline. To change a
+// test's arms, give it a new ID.
 type testDef struct {
-	ID    string
+	ID   string
+	Arms []arm
+}
+
+// A slot says what a shared route, such as "/", serves: exactly one of a page
+// (by name), shown there outside any test, or a test (by ID).
+type slotDef struct {
 	Route string
-	Arms  []arm
+	Page  string
+	Test  string
 }
 
 type arm struct {
@@ -40,12 +48,16 @@ type arm struct {
 }
 
 var pageDefs = []pageDef{
-	{Name: "home", Path: "/"},
-	{Name: "orchestration", Stylesheet: "orchestration.css"},
+	{Name: "home", Path: "/home"},
+	{Name: "orchestration", Path: "/orchestration", Stylesheet: "orchestration.css"},
+}
+
+var slotDefs = []slotDef{
+	{Route: "/", Test: "home-redesign"},
 }
 
 var testDefs = []testDef{
-	{ID: "home-redesign", Route: "/", Arms: []arm{{"home", 1}, {"orchestration", 1}}},
+	{ID: "home-redesign", Arms: []arm{{"home", 1}, {"orchestration", 1}}},
 }
 
 // What every page is rendered from.
@@ -70,7 +82,8 @@ type page struct {
 type registry struct {
 	pages map[string]*page
 	tests map[string]testDef // by ID
-	route map[string]testDef // by route
+	slots []slotDef          // in the order declared
+	route map[string]string  // a declared test's ID -> the route of its slot
 	order []testDef          // in the order declared
 }
 
@@ -107,11 +120,10 @@ func validPath(p string) bool {
 }
 
 // Checks the declarations and loads the pages, or says what is wrong.
-func newRegistry(files fs.FS, pdefs []pageDef, tdefs []testDef) (*registry, error) {
-	reg := &registry{pages: map[string]*page{}, tests: map[string]testDef{}, route: map[string]testDef{}}
+func newRegistry(files fs.FS, pdefs []pageDef, sdefs []slotDef, tdefs []testDef) (*registry, error) {
+	reg := &registry{pages: map[string]*page{}, tests: map[string]testDef{}, route: map[string]string{}}
 	fixed := fixedRoutes()
 	taken := map[string]string{} // route -> what holds it
-	ownPath := map[string]bool{} // routes that are a page's own path
 	claim := func(route, who string) error {
 		if !validPath(route) {
 			return fmt.Errorf("%s: %q is not a path", who, route)
@@ -132,6 +144,12 @@ func newRegistry(files fs.FS, pdefs []pageDef, tdefs []testDef) (*registry, erro
 		if _, ok := reg.pages[d.Name]; ok {
 			return nil, fmt.Errorf("page %q is registered twice", d.Name)
 		}
+		if d.Path == "" {
+			return nil, fmt.Errorf("page %q has no path of its own", d.Name)
+		}
+		if d.Path == "/" {
+			return nil, fmt.Errorf("page %q: its own path cannot be \"/\"; a slot says what \"/\" serves", d.Name)
+		}
 		pg := &page{def: d}
 		base, err := template.ParseFS(files, "partials/*.html")
 		if err != nil {
@@ -150,11 +168,8 @@ func newRegistry(files fs.FS, pdefs []pageDef, tdefs []testDef) (*registry, erro
 				return nil, err
 			}
 		}
-		if d.Path != "" {
-			if err := claim(d.Path, "page "+d.Name); err != nil {
-				return nil, err
-			}
-			ownPath[d.Path] = true
+		if err := claim(d.Path, "page "+d.Name); err != nil {
+			return nil, err
 		}
 		reg.pages[d.Name] = pg
 	}
@@ -176,23 +191,46 @@ func newRegistry(files fs.FS, pdefs []pageDef, tdefs []testDef) (*registry, erro
 				return nil, fmt.Errorf("test %q: arm %q has weight %d", t.ID, a.Page, a.Weight)
 			}
 		}
-		if !validPath(t.Route) {
-			return nil, fmt.Errorf("test %q: %q is not a path", t.ID, t.Route)
-		}
-		if collides(t.Route, fixed) {
-			return nil, fmt.Errorf("test %q: route %q collides with a fixed route", t.ID, t.Route)
-		}
-		if other, ok := reg.route[t.Route]; ok {
-			return nil, fmt.Errorf("test %q: route %q already runs test %q", t.ID, t.Route, other.ID)
-		}
-		// A route that is a page's own path is taken over by the test, with
-		// the page reached as an arm; a page stylesheet's path is not.
-		if who, ok := taken[t.Route]; ok && !ownPath[t.Route] {
-			return nil, fmt.Errorf("test %q: route %q collides with %s", t.ID, t.Route, who)
-		}
 		reg.tests[t.ID] = t
-		reg.route[t.Route] = t
 		reg.order = append(reg.order, t)
+	}
+	slotAt := map[string]bool{}
+	for _, sl := range sdefs {
+		who := fmt.Sprintf("slot %q", sl.Route)
+		if !validPath(sl.Route) {
+			return nil, fmt.Errorf("%s: the route is not a path", who)
+		}
+		switch {
+		case sl.Page == "" && sl.Test == "":
+			return nil, fmt.Errorf("%s names neither a page nor a test", who)
+		case sl.Page != "" && sl.Test != "":
+			return nil, fmt.Errorf("%s names both a page and a test", who)
+		case sl.Page != "" && reg.pages[sl.Page] == nil:
+			return nil, fmt.Errorf("%s: page %q is not a registered page", who, sl.Page)
+		case sl.Test != "":
+			if _, ok := reg.tests[sl.Test]; !ok {
+				return nil, fmt.Errorf("%s: test %q is not a declared test", who, sl.Test)
+			}
+			if other, ok := reg.route[sl.Test]; ok {
+				return nil, fmt.Errorf("%s: test %q is already served by slot %q", who, sl.Test, other)
+			}
+		}
+		if slotAt[sl.Route] {
+			return nil, fmt.Errorf("%s is declared twice", who)
+		}
+		if err := claim(sl.Route, who); err != nil {
+			return nil, err
+		}
+		slotAt[sl.Route] = true
+		if sl.Test != "" {
+			reg.route[sl.Test] = sl.Route
+		}
+		reg.slots = append(reg.slots, sl)
+	}
+	for _, t := range tdefs {
+		if _, ok := reg.route[t.ID]; !ok {
+			return nil, fmt.Errorf("test %q is served by no slot", t.ID)
+		}
 	}
 	return reg, nil
 }
@@ -236,7 +274,8 @@ func (s *server) canonicalURL(route string) string {
 	return "https://" + host + route
 }
 
-// Serves a page at its own path; a visit here is not part of any test.
+// Serves a page outside any test, at its own path or at a slot that names it:
+// no test cookie is read or set, even when the page is an arm.
 func (s *server) servePage(p *page, route string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "public, max-age=300")
@@ -308,8 +347,8 @@ func (s *server) pageStylesheet(p *page) http.HandlerFunc {
 	}
 }
 
-// Mounts the pages and tests: a test's route first, then each page's own path
-// where no test runs.
+// Mounts every page at its own path, outside any test, and each slot's route
+// with what it names: a page outside any test, or a test's drawn arm.
 func (s *server) mountPages(mux *http.ServeMux) {
 	pattern := func(route string) string {
 		if route == "/" {
@@ -317,15 +356,15 @@ func (s *server) mountPages(mux *http.ServeMux) {
 		}
 		return "GET " + route
 	}
-	for route, t := range s.reg.route {
-		mux.HandleFunc(pattern(route), s.serveTest(t, route))
+	for _, sl := range s.reg.slots {
+		if sl.Test != "" {
+			mux.HandleFunc(pattern(sl.Route), s.serveTest(s.reg.tests[sl.Test], sl.Route))
+		} else {
+			mux.HandleFunc(pattern(sl.Route), s.servePage(s.reg.pages[sl.Page], sl.Route))
+		}
 	}
 	for _, p := range s.reg.pages {
-		if p.def.Path != "" {
-			if _, tested := s.reg.route[p.def.Path]; !tested {
-				mux.HandleFunc(pattern(p.def.Path), s.servePage(p, p.def.Path))
-			}
-		}
+		mux.HandleFunc(pattern(p.def.Path), s.servePage(p, p.def.Path))
 		if p.def.Stylesheet != "" {
 			mux.HandleFunc("GET /"+p.def.Stylesheet, s.pageStylesheet(p))
 		}

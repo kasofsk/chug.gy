@@ -287,7 +287,7 @@ func (s *server) testSections(r *http.Request) ([]testSection, error) {
 		for _, a := range def.Arms {
 			names = append(names, a.Page)
 		}
-		out = append(out, buildSection(def.ID, def.Route, false, names, found[def.ID]))
+		out = append(out, buildSection(def.ID, s.reg.route[def.ID], false, names, found[def.ID]))
 	}
 	var ended []string
 	for id := range found {

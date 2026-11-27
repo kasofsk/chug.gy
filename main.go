@@ -317,11 +317,11 @@ func newServer(cfg config) (*server, error) {
 	if err != nil {
 		return nil, err
 	}
-	return newServerWith(cfg, files, pageDefs, testDefs)
+	return newServerWith(cfg, files, pageDefs, slotDefs, testDefs)
 }
 
-func newServerWith(cfg config, files fs.FS, pages []pageDef, tests []testDef) (*server, error) {
-	reg, err := newRegistry(files, pages, tests)
+func newServerWith(cfg config, files fs.FS, pages []pageDef, slots []slotDef, tests []testDef) (*server, error) {
+	reg, err := newRegistry(files, pages, slots, tests)
 	if err != nil {
 		return nil, fmt.Errorf("the pages: %w", err)
 	}

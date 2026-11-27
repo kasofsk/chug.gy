@@ -15,11 +15,14 @@ import (
 	"time"
 )
 
-var twoPages = []pageDef{{Name: "home", Path: "/"}, {Name: "alt", Path: "/alt"}}
+var twoPages = []pageDef{{Name: "home", Path: "/home"}, {Name: "alt", Path: "/alt"}}
 
-func abTest(route string) testDef {
-	return testDef{ID: "t1", Route: route, Arms: []arm{{"home", 1}, {"alt", 3}}}
+func abTest() testDef {
+	return testDef{ID: "t1", Arms: []arm{{"home", 1}, {"alt", 3}}}
 }
+
+// The slot that serves abTest at route.
+func abSlot(route string) []slotDef { return []slotDef{{Route: route, Test: "t1"}} }
 
 // The site's files plus a second page, "alt", that exists only in tests.
 func testFiles(t *testing.T) fs.FS {
@@ -48,11 +51,11 @@ func (o overlay) Open(name string) (fs.File, error) {
 	return o.FS.Open(name)
 }
 
-func testWithTests(t *testing.T, pages []pageDef, tests []testDef) (http.Handler, string) {
+func testWithTests(t *testing.T, pages []pageDef, slots []slotDef, tests []testDef) (http.Handler, string) {
 	t.Helper()
 	dir := t.TempDir()
 	keepTmpdir(t)
-	s, err := newServerWith(config{dataDir: dir, host: "chug.gy"}, testFiles(t), pages, tests)
+	s, err := newServerWith(config{dataDir: dir, host: "chug.gy"}, testFiles(t), pages, slots, tests)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -60,50 +63,70 @@ func testWithTests(t *testing.T, pages []pageDef, tests []testDef) (http.Handler
 	return s.handler(), dir
 }
 
+// Each case is valid but for the one fault it names, and the error says so.
 func TestRegistryRefusals(t *testing.T) {
 	files := testFiles(t)
 	arms := []arm{{"home", 1}, {"alt", 1}}
+	testA := []testDef{{ID: "a", Arms: arms}}
+	slotA := []slotDef{{Route: "/x", Test: "a"}}
+	styled := []pageDef{{Name: "home", Path: "/home", Stylesheet: "extra.css"}, {Name: "alt", Path: "/alt"}}
 	cases := map[string]struct {
 		pages []pageDef
+		slots []slotDef
 		tests []testDef
+		want  string
 	}{
-		"unknown page":      {twoPages, []testDef{{ID: "a", Route: "/x", Arms: []arm{{"home", 1}, {"nope", 1}}}}},
-		"repeated ID":       {twoPages, []testDef{{ID: "a", Route: "/x", Arms: arms}, {ID: "a", Route: "/y", Arms: arms}}},
-		"one arm":           {twoPages, []testDef{{ID: "a", Route: "/x", Arms: []arm{{"home", 1}}}}},
-		"zero weight":       {twoPages, []testDef{{ID: "a", Route: "/x", Arms: []arm{{"home", 1}, {"alt", 0}}}}},
-		"negative weight":   {twoPages, []testDef{{ID: "a", Route: "/x", Arms: []arm{{"home", 1}, {"alt", -1}}}}},
-		"two tests a route": {twoPages, []testDef{{ID: "a", Route: "/x", Arms: arms}, {ID: "b", Route: "/x", Arms: arms}}},
-		"bad ID":            {twoPages, []testDef{{ID: "A_", Route: "/x", Arms: arms}}},
-		"bad page name":     {[]pageDef{{Name: "Home"}}, nil},
-		"same page path":    {[]pageDef{{Name: "home", Path: "/"}, {Name: "alt", Path: "/"}}, nil},
-		"page on /docs":     {[]pageDef{{Name: "home", Path: "/docs"}}, nil},
-		"page under /docs/": {[]pageDef{{Name: "home", Path: "/docs/x"}}, nil},
-		"page on llms.txt":  {[]pageDef{{Name: "home", Path: "/llms.txt"}}, nil},
-		"page on redirect":  {[]pageDef{{Name: "home", Path: "/linux"}}, nil},
-		"page on fixed":     {[]pageDef{{Name: "home", Path: "/healthz"}}, nil},
-		"route on /docs/":   {twoPages, []testDef{{ID: "a", Route: "/docs/", Arms: arms}}},
-		"route on redirect": {twoPages, []testDef{{ID: "a", Route: "/github", Arms: arms}}},
-		"route on fixed":    {twoPages, []testDef{{ID: "a", Route: "/site.css", Arms: arms}}},
-		"twice registered":  {[]pageDef{{Name: "home"}, {Name: "home"}}, nil},
+		"unknown page":       {twoPages, slotA, []testDef{{ID: "a", Arms: []arm{{"home", 1}, {"nope", 1}}}}, `arm "nope" is not a registered page`},
+		"repeated ID":        {twoPages, []slotDef{{Route: "/x", Test: "a"}, {Route: "/y", Test: "a"}}, []testDef{{ID: "a", Arms: arms}, {ID: "a", Arms: arms}}, `test "a" is declared twice`},
+		"one arm":            {twoPages, slotA, []testDef{{ID: "a", Arms: []arm{{"home", 1}}}}, "at least two arms"},
+		"zero weight":        {twoPages, slotA, []testDef{{ID: "a", Arms: []arm{{"home", 1}, {"alt", 0}}}}, "has weight 0"},
+		"negative weight":    {twoPages, slotA, []testDef{{ID: "a", Arms: []arm{{"home", 1}, {"alt", -1}}}}, "has weight -1"},
+		"two tests a route":  {twoPages, []slotDef{{Route: "/x", Test: "a"}, {Route: "/x", Test: "b"}}, []testDef{{ID: "a", Arms: arms}, {ID: "b", Arms: arms}}, `slot "/x" is declared twice`},
+		"two pages a route":  {twoPages, []slotDef{{Route: "/x", Page: "home"}, {Route: "/x", Page: "alt"}}, nil, `slot "/x" is declared twice`},
+		"bad ID":             {twoPages, []slotDef{{Route: "/x", Test: "A_"}}, []testDef{{ID: "A_", Arms: arms}}, "an ID is lowercase"},
+		"bad page name":      {[]pageDef{{Name: "Home", Path: "/home"}}, nil, nil, "a name is lowercase"},
+		"no page path":       {[]pageDef{{Name: "home"}}, nil, nil, `page "home" has no path`},
+		"page on /":          {[]pageDef{{Name: "home", Path: "/"}}, nil, nil, `page "home": its own path cannot be "/"`},
+		"same page path":     {[]pageDef{{Name: "home", Path: "/same"}, {Name: "alt", Path: "/same"}}, nil, nil, `"/same" collides with page home`},
+		"page on /docs":      {[]pageDef{{Name: "home", Path: "/docs"}}, nil, nil, "collides with a fixed route"},
+		"page under /docs/":  {[]pageDef{{Name: "home", Path: "/docs/x"}}, nil, nil, "collides with a fixed route"},
+		"page on llms.txt":   {[]pageDef{{Name: "home", Path: "/llms.txt"}}, nil, nil, "collides with a fixed route"},
+		"page on redirect":   {[]pageDef{{Name: "home", Path: "/linux"}}, nil, nil, "collides with a fixed route"},
+		"page on fixed":      {[]pageDef{{Name: "home", Path: "/healthz"}}, nil, nil, "collides with a fixed route"},
+		"twice registered":   {[]pageDef{{Name: "home", Path: "/home"}, {Name: "home", Path: "/other"}}, nil, nil, `page "home" is registered twice`},
+		"route on /docs/":    {twoPages, []slotDef{{Route: "/docs/x", Test: "a"}}, testA, `slot "/docs/x": "/docs/x" collides with a fixed route`},
+		"route on redirect":  {twoPages, []slotDef{{Route: "/github", Test: "a"}}, testA, `slot "/github": "/github" collides with a fixed route`},
+		"route on fixed":     {twoPages, []slotDef{{Route: "/site.css", Test: "a"}}, testA, `slot "/site.css": "/site.css" collides with a fixed route`},
+		"route not a path":   {twoPages, []slotDef{{Route: "x", Page: "home"}}, nil, `slot "x": the route is not a path`},
+		"slot names neither": {twoPages, []slotDef{{Route: "/x"}}, nil, `slot "/x" names neither a page nor a test`},
+		"slot names both":    {twoPages, []slotDef{{Route: "/x", Page: "home", Test: "a"}}, testA, `slot "/x" names both a page and a test`},
+		"slot unknown page":  {twoPages, []slotDef{{Route: "/x", Page: "nope"}}, nil, `slot "/x": page "nope" is not a registered page`},
+		"slot unknown test":  {twoPages, []slotDef{{Route: "/x", Test: "nope"}}, nil, `slot "/x": test "nope" is not a declared test`},
+		"slot on own path":   {twoPages, []slotDef{{Route: "/alt", Page: "home"}}, nil, `slot "/alt": "/alt" collides with page alt`},
+		"slot on stylesheet": {styled, []slotDef{{Route: "/extra.css", Page: "alt"}}, nil, `"/extra.css" collides with the stylesheet of page home`},
+		"test with no slot":  {twoPages, nil, testA, `test "a" is served by no slot`},
+		"test in two slots":  {twoPages, []slotDef{{Route: "/x", Test: "a"}, {Route: "/y", Test: "a"}}, testA, `test "a" is already served by slot "/x"`},
 	}
 	for name, c := range cases {
-		if _, err := newRegistry(files, c.pages, c.tests); err == nil {
+		if _, err := newRegistry(files, c.pages, c.slots, c.tests); err == nil {
 			t.Errorf("%s: accepted", name)
+		} else if !strings.Contains(err.Error(), c.want) {
+			t.Errorf("%s: the error %q does not say %q", name, err, c.want)
 		}
-		if _, err := newServerWith(config{}, files, c.pages, c.tests); err == nil {
+		if _, err := newServerWith(config{}, files, c.pages, c.slots, c.tests); err == nil {
 			t.Errorf("%s: the server started", name)
 		}
 	}
 }
 
 func TestDeclaredPagesAndTestsAreValid(t *testing.T) {
-	if _, err := newRegistry(testFiles(t), pageDefs, testDefs); err != nil {
+	if _, err := newRegistry(testFiles(t), pageDefs, slotDefs, testDefs); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestDrawFollowsWeights(t *testing.T) {
-	td := abTest("/")
+	td := abTest()
 	n, alt := 8000, 0
 	for i := 0; i < n; i++ {
 		if td.draw() == "alt" {
@@ -127,7 +150,7 @@ func visit(h http.Handler, target string, cookies ...*http.Cookie) *httptest.Res
 }
 
 func TestTestRouteAssignsAndSticks(t *testing.T) {
-	h, _ := testWithTests(t, twoPages, []testDef{abTest("/")})
+	h, _ := testWithTests(t, twoPages, abSlot("/"), []testDef{abTest()})
 	w := visit(h, "/")
 	if w.Code != 200 {
 		t.Fatalf("answered %d", w.Code)
@@ -159,7 +182,7 @@ func TestTestRouteAssignsAndSticks(t *testing.T) {
 }
 
 func TestStaleCookieReplacedAndOthersLeft(t *testing.T) {
-	h, _ := testWithTests(t, twoPages, []testDef{abTest("/")})
+	h, _ := testWithTests(t, twoPages, abSlot("/"), []testDef{abTest()})
 	w := visit(h, "/", &http.Cookie{Name: "chug_test_t1", Value: "gone"}, &http.Cookie{Name: "chug_test_old", Value: "x"})
 	cs := w.Result().Cookies()
 	if len(cs) != 1 || cs[0].Name != "chug_test_t1" || (cs[0].Value != "home" && cs[0].Value != "alt") {
@@ -168,7 +191,7 @@ func TestStaleCookieReplacedAndOthersLeft(t *testing.T) {
 }
 
 func TestLoopbackCookieNotSecure(t *testing.T) {
-	h, _ := testWithTests(t, twoPages, []testDef{abTest("/")})
+	h, _ := testWithTests(t, twoPages, abSlot("/"), []testDef{abTest()})
 	r := httptest.NewRequest("GET", "/", nil)
 	r.Host = "localhost:8080"
 	w := httptest.NewRecorder()
@@ -179,26 +202,65 @@ func TestLoopbackCookieNotSecure(t *testing.T) {
 	}
 }
 
+// A page's own path is outside any test, even when the page is an arm and the
+// visitor holds the test's cookie naming it.
 func TestOwnPathOutsideTest(t *testing.T) {
-	h, _ := testWithTests(t, twoPages, []testDef{abTest("/")})
-	w := visit(h, "/alt")
-	body := w.Body.String()
-	if w.Code != 200 || len(w.Result().Cookies()) != 0 {
-		t.Fatalf("answered %d with cookies", w.Code)
-	}
-	if strings.Contains(body, "data-test") || strings.Contains(body, "data-arm") {
-		t.Fatal("outside a test the attributes must be absent")
-	}
-	if !strings.Contains(body, `data-page="alt"`) || !strings.Contains(body, `href="https://chug.gy/alt"`) {
-		t.Fatal("page name or canonical wrong")
-	}
-	if w.Header().Get("Cache-Control") != "public, max-age=300" {
-		t.Fatalf("cache %q", w.Header().Get("Cache-Control"))
+	h, _ := testWithTests(t, twoPages, abSlot("/"), []testDef{abTest()})
+	for _, name := range []string{"home", "alt"} {
+		assertOwnPath(t, h, "/"+name, name)
+		assertOwnPath(t, h, "/"+name, name, &http.Cookie{Name: "chug_test_t1", Value: name})
 	}
 }
 
+func assertOwnPath(t *testing.T, h http.Handler, path, name string, cookies ...*http.Cookie) {
+	t.Helper()
+	w := visit(h, path, cookies...)
+	body := w.Body.String()
+	if w.Code != 200 || len(w.Result().Cookies()) != 0 {
+		t.Fatalf("%s answered %d with cookies %v", path, w.Code, w.Result().Cookies())
+	}
+	if strings.Contains(body, "data-test") || strings.Contains(body, "data-arm") || !strings.Contains(body, `name="test" value=""`) {
+		t.Fatalf("%s: outside a test the attributes must be absent", path)
+	}
+	if !strings.Contains(body, `data-page="`+name+`"`) || !strings.Contains(body, `<link rel="canonical" href="https://chug.gy`+path+`">`) {
+		t.Fatalf("%s: page name or canonical wrong", path)
+	}
+	if w.Header().Get("Cache-Control") != "public, max-age=300" {
+		t.Fatalf("%s: cache %q", path, w.Header().Get("Cache-Control"))
+	}
+}
+
+// With the declarations on main, each page has its own URL outside the test,
+// and "/" still draws and keeps an arm of home-redesign.
+func TestDeclaredOwnPaths(t *testing.T) {
+	_, h, _ := testServer(t, false)
+	for _, name := range []string{"home", "orchestration"} {
+		assertOwnPath(t, h, "/"+name, name)
+		assertOwnPath(t, h, "/"+name, name, &http.Cookie{Name: "chug_test_home-redesign", Value: name})
+	}
+	w := visit(h, "/")
+	cs := w.Result().Cookies()
+	if w.Code != 200 || len(cs) != 1 || cs[0].Name != "chug_test_home-redesign" {
+		t.Fatalf("/ answered %d with cookies %v", w.Code, cs)
+	}
+	for i := 0; i < 5; i++ {
+		w := visit(h, "/", cs[0])
+		body := w.Body.String()
+		if len(w.Result().Cookies()) != 0 || !strings.Contains(body, `data-test="home-redesign" data-arm="`+cs[0].Value+`"`) {
+			t.Fatal("the assignment on / did not stick")
+		}
+	}
+}
+
+// A slot naming a page serves it at the slot's route, outside any test.
+func TestSlotServesPage(t *testing.T) {
+	h, _ := testWithTests(t, twoPages, []slotDef{{Route: "/x", Page: "alt"}}, nil)
+	assertOwnPath(t, h, "/x", "alt")
+	assertOwnPath(t, h, "/alt", "alt")
+}
+
 func TestUnknownURLIs404(t *testing.T) {
-	h, _ := testWithTests(t, twoPages, []testDef{abTest("/")})
+	h, _ := testWithTests(t, twoPages, abSlot("/"), []testDef{abTest()})
 	for _, p := range []string{"/nope", "/alt/", "/alt/x"} {
 		if w := visit(h, p); w.Code != 404 {
 			t.Errorf("%s answered %d", p, w.Code)
@@ -207,7 +269,7 @@ func TestUnknownURLIs404(t *testing.T) {
 }
 
 func TestHomeWithoutTest(t *testing.T) {
-	h, _ := testWithTests(t, pageDefs, nil)
+	h, _ := testWithTests(t, pageDefs, []slotDef{{Route: "/", Page: "home"}}, nil)
 	w := visit(h, "/")
 	body := w.Body.String()
 	for _, want := range []string{`data-page="home"`, `<link rel="canonical" href="https://chug.gy/">`, `name="page" value="home"`, `name="test" value=""`, "/site.css?v=" + stylesKey} {
@@ -276,13 +338,14 @@ func policyFaults(body string) (faults, loads []string) {
 // keeps to the policy, and everything it loads is served.
 func TestDeclaredArmsRender(t *testing.T) {
 	_, h, _ := testServer(t, false)
-	reg := mustRegistry(t, pageDefs)
+	reg := mustRegistry(t, pageDefs, slotDefs, testDefs)
 	if len(testDefs) == 0 {
 		t.Skip("no test is declared")
 	}
 	for _, td := range testDefs {
+		route := reg.route[td.ID]
 		for _, a := range td.Arms {
-			w := visit(h, td.Route, &http.Cookie{Name: cookieName(td.ID), Value: a.Page})
+			w := visit(h, route, &http.Cookie{Name: cookieName(td.ID), Value: a.Page})
 			if w.Code != 200 || len(w.Result().Cookies()) != 0 {
 				t.Fatalf("%s/%s answered %d with cookies %v", td.ID, a.Page, w.Code, w.Result().Cookies())
 			}
@@ -294,7 +357,7 @@ func TestDeclaredArmsRender(t *testing.T) {
 			for _, want := range []string{
 				`data-page="` + a.Page + `"`,
 				`data-test="` + td.ID + `" data-arm="` + a.Page + `"`,
-				`<link rel="canonical" href="https://chug.gy` + td.Route + `">`,
+				`<link rel="canonical" href="https://chug.gy` + route + `">`,
 				`<link rel="stylesheet" href="` + sheet + `">`,
 				`src="/site.js"`, `src="/analytics.js"`,
 				`request-form" method="post" action="/request-access"`,
@@ -338,18 +401,20 @@ func TestDeclaredArmsRender(t *testing.T) {
 }
 
 func TestPageStylesheet(t *testing.T) {
-	pages := []pageDef{{Name: "home", Path: "/", Stylesheet: "extra.css"}, {Name: "alt"}}
-	h, _ := testWithTests(t, pages, nil)
+	pages := []pageDef{{Name: "home", Path: "/home", Stylesheet: "extra.css"}, {Name: "alt", Path: "/alt"}}
+	h, _ := testWithTests(t, pages, nil, nil)
 	w := visit(h, "/extra.css")
 	if w.Code != 200 || strings.Contains(w.Header().Get("Cache-Control"), "immutable") {
 		t.Fatalf("answered %d, cache %q", w.Code, w.Header().Get("Cache-Control"))
 	}
-	w = visit(h, "/extra.css?v="+mustRegistry(t, pages).pages["home"].key)
+	w = visit(h, "/extra.css?v="+mustRegistry(t, pages, nil, nil).pages["home"].key)
 	if w.Code != 200 || !strings.Contains(w.Header().Get("Cache-Control"), "immutable") {
 		t.Fatalf("answered %d", w.Code)
 	}
-	if _, err := newRegistry(testFiles(t), []pageDef{{Name: "home", Stylesheet: "site.css"}}, nil); err == nil {
+	if _, err := newRegistry(testFiles(t), []pageDef{{Name: "home", Path: "/home", Stylesheet: "site.css"}}, nil, nil); err == nil {
 		t.Fatal("a stylesheet took a fixed route")
+	} else if !strings.Contains(err.Error(), `the stylesheet of page home: "/site.css" collides with a fixed route`) {
+		t.Fatalf("the error %q does not name the stylesheet's fixed route", err)
 	}
 }
 
@@ -381,7 +446,7 @@ func submit(h http.Handler, page, test string, cookies ...*http.Cookie) *httptes
 }
 
 func TestFormRecordsOrigin(t *testing.T) {
-	h, dir := testWithTests(t, twoPages, []testDef{abTest("/")})
+	h, dir := testWithTests(t, twoPages, abSlot("/"), []testDef{abTest()})
 	arm := &http.Cookie{Name: "chug_test_t1", Value: "alt"}
 
 	submit(h, "alt", "t1", arm)
@@ -413,9 +478,9 @@ func TestFormRecordsOrigin(t *testing.T) {
 	}
 }
 
-func mustRegistry(t *testing.T, pages []pageDef) *registry {
+func mustRegistry(t *testing.T, pages []pageDef, slots []slotDef, tests []testDef) *registry {
 	t.Helper()
-	reg, err := newRegistry(testFiles(t), pages, nil)
+	reg, err := newRegistry(testFiles(t), pages, slots, tests)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -84,10 +84,11 @@ func statsEnv(t *testing.T) (*adminEnv, *browser) {
 	e.s.events.close()
 	keepTmpdir(t)
 	tests := []testDef{
-		{ID: "hero-1", Route: "/", Arms: []arm{{"home", 1}, {"alt", 1}}},
-		{ID: "quiet-1", Route: "/quiet", Arms: []arm{{"alt", 1}, {"home", 1}}},
+		{ID: "hero-1", Arms: []arm{{"home", 1}, {"alt", 1}}},
+		{ID: "quiet-1", Arms: []arm{{"alt", 1}, {"home", 1}}},
 	}
-	s, err := newServerWith(e.cfg, testFiles(t), twoPages, tests)
+	slots := []slotDef{{Route: "/", Test: "hero-1"}, {Route: "/quiet", Test: "quiet-1"}}
+	s, err := newServerWith(e.cfg, testFiles(t), twoPages, slots, tests)
 	if err != nil {
 		t.Fatal(err)
 	}
