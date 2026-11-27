@@ -49,11 +49,16 @@
 
 <div class="hero-card">
 <div class="ticket">
-<div class="ticket-head">
+<div class="ticket-head ticket-head-tabbed">
 <div class="tag">ILLUSTRATIVE TICKET · #214</div>
 <div class="ticket-title">Mass-balance check for the reservoir routing step</div>
+<div class="cycle-tabs" role="radiogroup" aria-label="Work cycles">
+<label class="cycle-tab"><input type="radio" name="cycle" id="cycle-1" data-track="hero-cycle-1"><span class="cycle-name">Cycle 1</span><span class="cycle-state cycle-state-failed">sent back</span></label>
+<label class="cycle-tab"><input type="radio" name="cycle" id="cycle-2" data-track="hero-cycle-2" checked><span class="cycle-name">Cycle 2</span><span class="cycle-state cycle-state-held">at approval</span></label>
 </div>
-<div class="stages">
+</div>
+<div class="cycle-panels">
+<div class="stages cycle-panel cycle-panel-1">
 <div class="stage">
 <div class="stage-what stage-what-ran"><div class="stage-name">Work</div><p class="stage-report">Added test_routing_mass_balance: it runs the 12 baseline cases and fails when the closure error exceeds the note's tolerance. The solver and the baselines are unchanged.</p><div class="stage-meta">ran on Steve's desktop · Claude Opus · 6m 12s</div></div>
 <div class="stage-state">done</div>
@@ -62,8 +67,30 @@
 <div class="stage-what stage-what-ran"><div class="stage-name">Checks</div><p class="stage-report stage-report-cmd">pytest tests/ exited 0<br>compare_baselines.py --all exited 0</p><div class="stage-meta">ran on the lab build server · 3m 48s</div></div>
 <div class="stage-state">passed</div>
 </div>
+<div class="stage stage-failed">
+<div class="stage-what stage-what-ran"><div class="stage-name">Review</div><p class="stage-report">Fail. The test compares totals over the whole run, so errors that cancel between timesteps go unnoticed: with outflow dropped on one step, it still passes. The note's tolerance is per timestep.</p><div class="stage-meta">ran on Steve's desktop · Claude Sonnet · 1m 04s</div><label class="stage-next" for="cycle-2">Sent back to work, with this review → Cycle 2</label></div>
+<div class="stage-state">failed</div>
+</div>
+<div class="stage stage-later">
+<div class="stage-what"><div class="stage-name">Approval</div><div class="stage-note">Technical lead, named in the plan</div></div>
+<div class="stage-state">not reached</div>
+</div>
+<div class="stage stage-later">
+<div class="stage-what"><div class="stage-name">Landing</div><div class="stage-note">Pull request, opened for a person to merge</div></div>
+<div class="stage-state">not reached</div>
+</div>
+</div>
+<div class="stages cycle-panel cycle-panel-2">
 <div class="stage">
-<div class="stage-what stage-what-ran"><div class="stage-name">Review</div><p class="stage-report">Pass. The balance closes on all 12 baseline cases at the note's tolerance, and a 0.1% change to outflow makes the test fail. Nothing under solver/ or baselines/ changed.</p><div class="stage-meta">ran on Steve's desktop · Claude Sonnet · 58s</div></div>
+<div class="stage-what stage-what-ran"><div class="stage-name">Work</div><blockquote class="stage-given"><span class="stage-given-from">from cycle 1's review</span>The test compares totals over the whole run, so errors that cancel between timesteps go unnoticed.</blockquote><p class="stage-report">The test now checks closure at every timestep of the 12 baseline cases, against the note's per-step tolerance. The solver and the baselines are unchanged.</p><div class="stage-meta">ran on Steve's desktop · Claude Opus · 4m 31s</div></div>
+<div class="stage-state">done</div>
+</div>
+<div class="stage">
+<div class="stage-what stage-what-ran"><div class="stage-name">Checks</div><p class="stage-report stage-report-cmd">pytest tests/ exited 0<br>compare_baselines.py --all exited 0</p><div class="stage-meta">ran on the lab build server · 3m 52s</div></div>
+<div class="stage-state">passed</div>
+</div>
+<div class="stage">
+<div class="stage-what stage-what-ran"><div class="stage-name">Review</div><p class="stage-report">Pass. Closure is checked at every timestep against the note's tolerance, and with outflow dropped on one step the test now fails. Nothing under solver/ or baselines/ changed.</p><div class="stage-meta">ran on Steve's desktop · Claude Sonnet · 58s</div></div>
 <div class="stage-state">passed</div>
 </div>
 <div class="stage stage-held">
@@ -73,6 +100,7 @@
 <div class="stage stage-later">
 <div class="stage-what"><div class="stage-name">Landing</div><div class="stage-note">Pull request, opened for a person to merge</div></div>
 <div class="stage-state">not yet</div>
+</div>
 </div>
 </div>
 </div>
