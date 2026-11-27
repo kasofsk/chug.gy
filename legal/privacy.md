@@ -107,7 +107,7 @@ We store and process information on servers we operate in the United States. If 
 
 The record of what ran is the point of the Service, so we keep your account, your content and the record of agent work for as long as your workspace exists.
 
-- **Deletion on request.** You can ask us to delete your account, a project or a workspace at any time by writing to privacy@chug.gy. The Service has no delete button for a project that has run work, so we do it for you. We will finish within 30 days, and copies in our backups are overwritten within [90] days after that.
+- **Deletion on request.** You can ask us to delete your account, a project or a workspace at any time by writing to privacy@chug.gy. The Service has no delete button for a project that has run work, so we do it for you. We will finish within 30 days, and copies in our backups are overwritten within 90 days after that.
 - **Shared workspaces.** If you leave a workspace that others still use, the work you did there stays with that workspace.
 - **Records of agreement.** We keep the record that you agreed to our terms and to this policy after your account is deleted, for as long as we may need to show what was agreed.
 - **Other places.** Deleting from Chuggy does not remove what is already in your GitHub repositories or with your model provider.
