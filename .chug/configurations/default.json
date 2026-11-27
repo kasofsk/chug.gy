@@ -56,7 +56,7 @@
           "mode": {
             "type": "SingleAgent",
             "agent": "Claude",
-            "arguments": []
+            "arguments": ["--model=opus"]
           },
           "setup": [
             "echo \"GOCACHE=${TMPDIR:-/tmp}/go-build\" >> \"$CHUG_ENV\"",
