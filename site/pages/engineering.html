@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en" data-page="{{.Name}}"{{if .Preview}} data-preview{{end}}{{if .Test}} data-test="{{.Test}}" data-arm="{{.Arm}}"{{end}}>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>chuggy for engineering software teams</title>
+<meta name="description" content="chuggy coordinates software work done by people and AI agents together. Every change is a ticket. Every ticket is evaluated by your checks, a reviewing agent and, where you require it, a named person, before it lands.">
+<meta property="og:title" content="chuggy for engineering software teams">
+<meta property="og:description" content="Faster model code. Same standard of proof.">
+<meta property="og:url" content="{{.Canonical}}">
+<meta property="og:type" content="website">
+<link rel="canonical" href="{{.Canonical}}">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/space-grotesk-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/ibm-plex-mono-latin-400.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{.PageStylesheet}}?v={{.PageStylesKey}}">
+<script src="/site.js" defer></script>
+<script src="/analytics.js" defer></script>
+</head>
+<body>
+
+<header class="top">
+<div class="wrap top-inner">
+<a class="brand" href="/">chuggy</a>
+<nav class="top-nav" aria-label="Site">
+<a class="top-link" data-track="nav-how" href="#how">How a change moves</a>
+<a class="top-link" data-track="nav-who" href="#who">Who it answers to</a>
+<a class="top-link" data-track="nav-where" href="#where">Where it runs</a>
+<a class="btn btn-small" data-track="cta-nav-request" href="#access">Request an invite</a>
+</nav>
+</div>
+</header>
+
+<main>
+
+<section class="hero">
+<div class="wrap hero-inner">
+<div class="hero-text">
+<div class="eyebrow">For teams that build engineering and modeling software</div>
+<h1 class="hero-title">Faster model code. Same standard of proof.</h1>
+<p class="hero-lead">chuggy coordinates software work done by people and AI agents together. Every change is a ticket. Every ticket is evaluated by your checks, a reviewing agent and, where you require it, a named person, before it lands. It runs on machines you register, with your own model accounts.</p>
+<div class="actions">
+<a class="btn" data-track="cta-hero-request" href="#access">Request an invite</a>
+<a class="btn btn-quiet" data-track="cta-hero-how" href="#how">See how a change moves</a>
+</div>
+</div>
+
+<div class="hero-card">
+<div class="ticket">
+<div class="ticket-head">
+<div class="tag">ILLUSTRATIVE TICKET · #214</div>
+<div class="ticket-title">Mass-balance check for the reservoir routing step</div>
+</div>
+<div class="stages">
+<div class="stage">
+<div class="stage-what stage-what-ran"><div class="stage-name">Work</div><p class="stage-report">Added test_routing_mass_balance: it runs the 12 baseline cases and fails when the closure error exceeds the note's tolerance. The solver and the baselines are unchanged.</p><div class="stage-meta">ran on Steve's desktop · Claude Opus · 6m 12s</div></div>
+<div class="stage-state">done</div>
+</div>
+<div class="stage">
+<div class="stage-what stage-what-ran"><div class="stage-name">Checks</div><p class="stage-report stage-report-cmd">pytest tests/ exited 0<br>compare_baselines.py --all exited 0</p><div class="stage-meta">ran on the lab build server · 3m 48s</div></div>
+<div class="stage-state">passed</div>
+</div>
+<div class="stage">
+<div class="stage-what stage-what-ran"><div class="stage-name">Review</div><p class="stage-report">Pass. The balance closes on all 12 baseline cases at the note's tolerance, and a 0.1% change to outflow makes the test fail. Nothing under solver/ or baselines/ changed.</p><div class="stage-meta">ran on Steve's desktop · Claude Sonnet · 58s</div></div>
+<div class="stage-state">passed</div>
+</div>
+<div class="stage stage-held">
+<div class="stage-what"><div class="stage-name">Approval</div><div class="stage-note">Technical lead, named in the plan</div></div>
+<div class="stage-state">waiting on a person</div>
+</div>
+<div class="stage stage-later">
+<div class="stage-what"><div class="stage-name">Landing</div><div class="stage-note">Pull request, opened for a person to merge</div></div>
+<div class="stage-state">not yet</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="wrap band">
+<div class="section-head">
+<div class="eyebrow">The problem</div>
+<h2 class="section-title">Compiling is not the bar. Matching the baseline is.</h2>
+<p class="section-lead">When software sits underneath flood, reservoir and water quality decisions, a change is only finished when someone can show what was asked, what was run and why it was accepted. A chat window per engineer does not produce that.</p>
+</div>
+<div class="cards">
+<div class="card">
+<h3 class="card-title">Nobody can say what the agent was asked</h3>
+<p class="card-text">The prompt lived in one person's session and is gone. The next reviewer sees a diff with no brief behind it.</p>
+</div>
+<div class="card">
+<h3 class="card-title">A tidy refactor quietly moves the numbers</h3>
+<p class="card-text">The solver still converges and the build is green. Whether results still match depends on whether anyone remembered to run the comparison.</p>
+</div>
+<div class="card">
+<h3 class="card-title">The client asks how it was tested</h3>
+<p class="card-text">And the honest answer is a story reconstructed from memory, because each person used the tools their own way.</p>
+</div>
+</div>
+</section>
+
+<section class="how" id="how">
+<div class="wrap how-inner">
+<div class="section-head">
+<div class="eyebrow">How a change moves</div>
+<h2 class="section-title">One path for every change, and a person at both ends.</h2>
+<p class="section-lead">A ticket's brief names the problem, what to build, what not to touch and how to verify it. Nothing starts until a person dispatches it, and what lands is what passed your plan.</p>
+</div>
+
+<ol class="steps">
+<li class="step">
+<div class="step-num">01</div>
+<div class="step-title">Draft and release</div>
+<p class="step-text">Written by you or by an agent on your word. Released tickets wait on the tickets they depend on.</p>
+</li>
+<li class="step">
+<div class="step-num">02</div>
+<div class="step-title">Dispatch</div>
+<p class="step-text">A person who may dispatch starts it. Releasing alone starts nothing.</p>
+</li>
+<li class="step">
+<div class="step-num">03</div>
+<div class="step-title">Work</div>
+<p class="step-text">An agent makes the change on its own branch, in a container on your runner.</p>
+</li>
+<li class="step">
+<div class="step-num">04</div>
+<div class="step-title">Evaluation</div>
+<p class="step-text">Your plan's stages run in order. A stage that fails sends the work back with the reason.</p>
+</li>
+<li class="step">
+<div class="step-num">05</div>
+<div class="step-title">Landing</div>
+<p class="step-text">A push, or a pull request left open for a person to merge. Your choice per ticket.</p>
+</li>
+</ol>
+
+<div class="escalation">
+<div class="escalation-title">Configurable Escalation Policy</div>
+<p class="escalation-text">A ticket that fails evaluation too many times, is self-contradictory or insufficiently stated, or whose landing cannot go through, is escalated for human review.</p>
+</div>
+
+<div class="graph">
+<div class="graph-head">
+<h3 class="graph-title">Larger work is a graph of tickets</h3>
+<div class="tag">ILLUSTRATIVE EPIC · PORT AN EVAPORATION ROUTINE WITHOUT MOVING RESULTS</div>
+</div>
+<div class="graph-cols">
+
+<div class="graph-col">
+<div class="graph-col-label">First</div>
+<div class="node node-landed">
+<div class="node-meta">#301 · landed</div>
+<div class="node-title">Pin baseline outputs for the routing test set</div>
+</div>
+<div class="node node-landed">
+<div class="node-meta">#302 · landed</div>
+<div class="node-title">Add a tolerance comparison to the check stage</div>
+</div>
+</div>
+
+<div class="graph-col">
+<div class="graph-col-label">Then</div>
+<div class="node node-active">
+<div class="node-meta">#303 · in evaluation · waited on #301, #302</div>
+<div class="node-title">Port the routine behind its existing interface</div>
+</div>
+<div class="node node-active">
+<div class="node-meta">#304 · in work · waited on #301</div>
+<div class="node-title">Unit tests for the edge cases in the old comments</div>
+</div>
+</div>
+
+<div class="graph-col">
+<div class="graph-col-label">After</div>
+<div class="node node-held">
+<div class="node-meta">#305 · held for the lead · waits on #303</div>
+<div class="node-title">Remove the legacy routine</div>
+</div>
+<div class="node node-waiting">
+<div class="node-meta">#306 · waiting · waits on #303</div>
+<div class="node-title">Update the technical reference section</div>
+</div>
+</div>
+
+<div class="graph-col">
+<div class="graph-col-label">Last</div>
+<div class="node node-waiting">
+<div class="node-meta">#307 · waiting · waits on #304, #305, #306</div>
+<div class="node-title">Verification summary and release notes</div>
+</div>
+</div>
+
+</div>
+<p class="graph-note">A ticket becomes ready only when everything it waits on is done, so the order you would insist on by hand is the order the work happens in.</p>
+</div>
+</div>
+</section>
+
+<section class="wrap band" id="who">
+<div class="section-head">
+<div class="eyebrow">Who it answers to</div>
+<h2 class="section-title">More throughput, simpler governance, and a record ready for any question.</h2>
+</div>
+<div class="cards">
+
+<div class="who-card">
+<div class="role">THE ENGINEER · THROUGHPUT</div>
+<h3 class="who-quote">"Can I hand off more than one thing at a time?"</h3>
+<ul class="who-list">
+<li>The brief is the instruction: intent, links to read first, the branch, the checks.</li>
+<li>Tickets become ready in order as the tickets they wait on finish, so a queue of work keeps moving.</li>
+<li>File and follow tickets from the console, a chat thread, or your own coding agent.</li>
+</ul>
+</div>
+
+<div class="who-card">
+<div class="role">THE TECHNICAL LEAD · GOVERNANCE</div>
+<h3 class="who-quote">"Who decided this was good enough?"</h3>
+<ul class="who-list">
+<li>The evaluation plan is a file in your repository, reviewed and versioned like the code.</li>
+<li>A plan can list a person's approval as an evaluator, after the checks and the reviewing agent.</li>
+<li>Each ticket is pinned to the plan revision it was dispatched on.</li>
+</ul>
+</div>
+
+<div class="who-card">
+<div class="role">THE CLIENT · TRANSPARENCY</div>
+<h3 class="who-quote">"We have a question nobody planned for."</h3>
+<ul class="who-list">
+<li>chuggy keeps the record of what ran, what it decided and why.</li>
+<li>Each job has its own log; each failed stage has its reason.</li>
+<li>The answer is read from the ticket, the same way for every change.</li>
+</ul>
+</div>
+
+</div>
+</section>
+
+<section class="where" id="where">
+<div class="wrap where-inner">
+<div class="where-text">
+<div class="eyebrow">Where it runs</div>
+<h2 class="section-title">Your machines. Your model accounts.</h2>
+<p class="where-lead">The agent's work and its evaluation run on runners you register. Which model account a machine uses is set on that machine, so the choice stays with you and your client.</p>
+<p class="where-note">chuggy works with GitHub repositories today. Whether a given model account is approved for a given contract's code and data is a decision for you and your client; chuggy lets you make it per machine.</p>
+</div>
+<div class="facts">
+<div class="fact">
+<div class="fact-name">Runners</div>
+<div class="fact-text">Linux, Mac or Windows machines of your own. Each job runs in a container as an unprivileged user with every capability dropped.</div>
+</div>
+<div class="fact">
+<div class="fact-name">Credentials</div>
+<div class="fact-text">Read on the runner from a file mounted read-only, scrubbed from what a job reports, and never sent to chuggy.</div>
+</div>
+<div class="fact">
+<div class="fact-name">Model access</div>
+<div class="fact-text">A Claude subscription or API key, or Claude through Amazon Bedrock, Google Vertex AI or Microsoft Foundry. A Codex login also works.</div>
+</div>
+<div class="fact">
+<div class="fact-name">Deployment</div>
+<div class="fact-text">Hybrid cloud and on-premises deployment are supported.</div>
+</div>
+<div class="fact">
+<div class="fact-name">Open to inspection</div>
+<div class="fact-text">The core is a formal model specified in Quint. The service and the three runner packages are public on GitHub.</div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="wrap start">
+<div class="start-text">
+<div class="eyebrow">Start small</div>
+<h2 class="section-title">One repository, one test suite you already trust.</h2>
+<ol class="start-steps">
+<li class="start-step"><div class="start-num">1</div><div class="start-body"><strong>Pick the repository</strong> where a regression suite already tells you when results move.</div></li>
+<li class="start-step"><div class="start-num">2</div><div class="start-body"><strong>Write the plan down</strong>: the image to build in, the checks to run, who reviews, how it lands.</div></li>
+<li class="start-step"><div class="start-num">3</div><div class="start-body"><strong>Register one runner</strong>, a machine you already build on.</div></li>
+<li class="start-step"><div class="start-num">4</div><div class="start-body"><strong>File a ticket you would give a new hire</strong>: a missing test, a documentation fix, a small port. Land it as a pull request and read the record.</div></li>
+</ol>
+</div>
+
+<div class="brief">
+<div class="tag brief-head">ILLUSTRATIVE BRIEF</div>
+<div class="brief-body">
+<div class="brief-field"><div class="brief-key">title</div><div>Mass-balance check for the reservoir routing step</div></div>
+<div class="brief-field"><div class="brief-key">intent</div><div>The routing step has no automated check that inflow, outflow and change in storage close. Add a test that runs the baseline cases and fails when the closure error exceeds the tolerance in the linked note. Do not change the solver or the baselines. Verify by running the regression suite: every baseline output must be unchanged.</div></div>
+<div class="brief-field"><div class="brief-key">links</div><div>the tolerance note; the routing module's README</div></div>
+<div class="brief-field"><div class="brief-key">landing</div><div>Pull request</div></div>
+</div>
+</div>
+</section>
+
+<section class="cta">
+<div class="wrap cta-inner">
+<h2 class="cta-title">Go faster. Raise your standards.</h2>
+<p class="cta-lead">chuggy is open by invitation, and it is built on itself.</p>
+<div class="cta-aside">
+<h3 class="cta-aside-title">Agentic onboarding, and founders who dote.</h3>
+<p class="cta-aside-text">An agentic onboarding experience and hands-on founders get you there quickly and painlessly: the point where your team's agents stop being one assistant per person and start working as a single unit, on one explicit graph of tickets everyone can see.</p>
+</div>
+<div class="actions">
+<a class="btn" data-track="cta-end-request" href="#access">Request an invite</a>
+</div>
+<section class="access" id="access" aria-label="Request an invite">
+{{template "form" .}}
+</section>
+</div>
+</section>
+
+</main>
+
+<footer class="foot">
+<div class="wrap foot-inner">
+<div>chuggy · an agentic development platform</div>
+<div>Tickets and briefs shown on this page are illustrative examples.</div>
+</div>
+</footer>
+
+</body>
+</html>

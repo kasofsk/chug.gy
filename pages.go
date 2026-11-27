@@ -50,6 +50,7 @@ type arm struct {
 var pageDefs = []pageDef{
 	{Name: "home", Path: "/home"},
 	{Name: "orchestration", Path: "/orchestration", Stylesheet: "orchestration.css"},
+	{Name: "engineering", Path: "/engineering", Stylesheet: "engineering.css"},
 }
 
 var slotDefs = []slotDef{

@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/csv"
 	"encoding/json"
+	"io/fs"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -705,7 +706,15 @@ func TestPagesAndPreview(t *testing.T) {
 	e := newAdminEnv(t)
 	cfg.admin = e.cfg.admin
 	keepTmpdir(t)
-	s, err := newServerWith(cfg, testFiles(t), twoPages, append(abSlot("/"), slotDef{Route: "/x", Page: "alt"}), []testDef{abTest()})
+	// "lone" is served by no slot, only at its own path.
+	files := testFiles(t)
+	home, err := fs.ReadFile(files, "pages/home.html")
+	if err != nil {
+		t.Fatal(err)
+	}
+	files = overlay{files, map[string]string{"pages/lone.html": string(home)}}
+	pages := append(append([]pageDef{}, twoPages...), pageDef{Name: "lone", Path: "/lone"})
+	s, err := newServerWith(cfg, files, pages, append(abSlot("/"), slotDef{Route: "/x", Page: "alt"}), []testDef{abTest()})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -717,12 +726,14 @@ func TestPagesAndPreview(t *testing.T) {
 	for _, want := range []string{`href="/admin/pages/home"`, `href="/admin/pages/alt"`,
 		`<a href="/home"><code>/home</code></a>`, `<a href="/alt"><code>/alt</code></a>`,
 		"<code>/</code> through test t1, <code>/x</code></td>", // alt: through the test, and directly
+		`<a href="/lone"><code>/lone</code></a></td>
+<td><span class="none">none</span></td>`, // lone: no slot
 	} {
 		if !strings.Contains(list, want) {
 			t.Errorf("the list lacks %s", want)
 		}
 	}
-	for _, name := range []string{"home", "alt"} {
+	for _, name := range []string{"home", "alt", "lone"} {
 		w := b.do("GET", "/admin/pages/"+name, nil)
 		if w.Code != 200 {
 			t.Fatalf("%s preview answered %d", name, w.Code)
