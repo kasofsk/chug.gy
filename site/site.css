@@ -364,6 +364,7 @@ section p { color: var(--text-2); max-width: var(--measure); }
 .prose table { border-collapse: collapse; width: 100%; margin: 0 0 1.5em; font-size: 0.9375rem; }
 .prose th, .prose td { text-align: left; padding: 8px 14px 8px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
 .prose th { font-weight: 600; border-bottom-color: var(--rule-strong); }
+@media (max-width: 760px) { .prose table { display: block; overflow-x: auto; } }
 .prose hr { border: 0; border-top: 1px solid var(--rule); margin: 2em 0; }
 .prose img { max-width: 100%; height: auto; }
 @media (prefers-color-scheme: dark) {
