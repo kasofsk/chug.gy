@@ -372,29 +372,77 @@ func TestDeclaredArmsRender(t *testing.T) {
 			if strings.Contains(body, "{{") {
 				t.Errorf("%s/%s: a template hole was left in the page", td.ID, a.Page)
 			}
-			faults, loads := policyFaults(body)
-			for _, f := range faults {
-				t.Errorf("%s/%s: the policy would drop %s", td.ID, a.Page, f)
+			checkPolicyAndLoads(t, h, td.ID+"/"+a.Page, body)
+		}
+	}
+}
+
+// Each declared page at its own path, in a test or not, is held to the same
+// policy as a test's arm, and everything it loads is served.
+func TestDeclaredPagesOwnPathPolicy(t *testing.T) {
+	_, h, _ := testServer(t, false)
+	for _, p := range pageDefs {
+		w := visit(h, p.Path)
+		if w.Code != 200 {
+			t.Fatalf("%s answered %d", p.Path, w.Code)
+		}
+		checkPolicyAndLoads(t, h, p.Path, w.Body.String())
+	}
+}
+
+// The page keeps to the policy, everything it loads answers 200, its images
+// are webp, and each url() in a stylesheet it loads is on this site and served.
+func checkPolicyAndLoads(t *testing.T, h http.Handler, label, body string) {
+	t.Helper()
+	faults, loads := policyFaults(body)
+	for _, f := range faults {
+		t.Errorf("%s: the policy would drop %s", label, f)
+	}
+	for _, target := range loads {
+		got := visit(h, target)
+		if got.Code != 200 {
+			t.Errorf("%s loads %s, which answered %d", label, target, got.Code)
+			continue
+		}
+		if strings.HasPrefix(target, "/img/") && got.Header().Get("Content-Type") != "image/webp" {
+			t.Errorf("%s: %s is served as %q", label, target, got.Header().Get("Content-Type"))
+		}
+		if !strings.Contains(target, ".css") {
+			continue
+		}
+		for _, m := range cssURL.FindAllStringSubmatch(got.Body.String(), -1) {
+			if !onThisSite(m[1]) {
+				t.Errorf("%s: %s: the policy would drop %s", label, target, m[0])
+			} else if got := visit(h, m[1]); got.Code != 200 {
+				t.Errorf("%s: %s loads %s, which answered %d", label, target, m[1], got.Code)
 			}
-			for _, target := range loads {
-				got := visit(h, target)
-				if got.Code != 200 {
-					t.Errorf("%s/%s loads %s, which answered %d", td.ID, a.Page, target, got.Code)
-					continue
-				}
-				if strings.HasPrefix(target, "/img/") && got.Header().Get("Content-Type") != "image/webp" {
-					t.Errorf("%s is served as %q", target, got.Header().Get("Content-Type"))
-				}
-				if !strings.Contains(target, ".css") {
-					continue
-				}
-				for _, m := range cssURL.FindAllStringSubmatch(got.Body.String(), -1) {
-					if !onThisSite(m[1]) {
-						t.Errorf("%s: the policy would drop %s", target, m[0])
-					} else if got := visit(h, m[1]); got.Code != 200 {
-						t.Errorf("%s loads %s, which answered %d", target, m[1], got.Code)
-					}
-				}
+		}
+	}
+}
+
+// The engineering page is in no test: it is served only at its own path.
+func TestEngineeringPage(t *testing.T) {
+	_, h, _ := testServer(t, false)
+	reg := mustRegistry(t, pageDefs, slotDefs, testDefs)
+	assertOwnPath(t, h, "/engineering", "engineering")
+	body := visit(h, "/engineering").Body.String()
+	for _, want := range []string{
+		`name="page" value="engineering"`,
+		`<link rel="stylesheet" href="/engineering.css?v=` + reg.pages["engineering"].key + `">`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Errorf("/engineering: missing %s", want)
+		}
+	}
+	for _, sl := range slotDefs {
+		if sl.Page == "engineering" {
+			t.Errorf("slot %q serves engineering", sl.Route)
+		}
+	}
+	for _, td := range testDefs {
+		for _, a := range td.Arms {
+			if a.Page == "engineering" {
+				t.Errorf("test %s has engineering as an arm", td.ID)
 			}
 		}
 	}

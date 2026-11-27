@@ -75,6 +75,11 @@ docker build -t chug.gy .
   `pages/orchestration.html` loads `orchestration.css` and no other stylesheet;
   its screenshots are `img/orchestration-*.webp`, and its font is Archivo
   (`fonts/archivo-latin.woff2`, under the SIL Open Font License).
+  `pages/engineering.html`, at `/engineering` and in no test, loads
+  `engineering.css` and no other stylesheet; its fonts are Space Grotesk
+  (`fonts/space-grotesk-latin.woff2`) and IBM Plex Mono
+  (`fonts/ibm-plex-mono-latin-400.woff2`, `fonts/ibm-plex-mono-latin-500.woff2`),
+  under the SIL Open Font License, and it reuses `fonts/inter-latin.woff2`.
 
 - `.github/workflows/chuggy-proof.yml` is a workflow started only by hand
   (`workflow_dispatch`); it prints its commit and ref, then succeeds or fails
